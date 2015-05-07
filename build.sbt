@@ -1,6 +1,8 @@
-name := "scala-connectivity-map"
+lazy val root = (project in file(".")).
+  settings(
+    name := "scala-connectivity-map",
+    version := "1.0",
+    scalaVersion := "2.11.6"
+  )
 
-version := "1.0"
 
-scalaVersion := "2.11.6"
-    
