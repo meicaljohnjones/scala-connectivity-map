@@ -6,4 +6,7 @@ package com.clackjones.connectivitymap
  * the mapping between probe_ids (the names of genes) and the
  * fold change in their expression.
  */
-class ReferenceProfile(val name: String, val geneFoldChange: Map[String, Int])
+class ReferenceProfile(val name: String, val geneFoldChange: Map[String, Int]) {
+
+  override def toString(): String = s"ReferenceProfile: $name\n"
+}
