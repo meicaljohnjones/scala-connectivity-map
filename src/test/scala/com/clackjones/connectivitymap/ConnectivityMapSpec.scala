@@ -10,14 +10,37 @@ class ConnectivityMapSpec extends UnitSpec {
   }
 
   "Passing a single gene expression profile and query signature to connectionScores" should
-    "return one connection strength tuple with score 1.0" in {
+    "return one connection strength tuple with score 1.0 when maxConnectionStrength has the same strength value" in {
 
     val expressionProfile = new ReferenceProfile(name = "profile1", Map("gene1" -> 1, "gene2" -> -5, "gene3" -> 7))
     val querySignature : Map[String, Int] = Map("gene2" -> 1, "gene3" -> 1)
 
-    def mockConnectionStrength(prof: ReferenceProfile, query: Map[String, Int]): (String, Int) = ("resultprofile", 50)
+    val strength = 50
 
-    connectionScores(Set(expressionProfile), querySignature, mockConnectionStrength) shouldBe Set(("resultprofile", 1f))
+    def mockConnectionStrength(prof: ReferenceProfile, query: Map[String, Int]): (String, Int) =
+      ("resultprofile", strength)
+
+    def mockMaxConnectionStrength(N: Int, m: Int): Int = strength
+
+    connectionScores(Set(expressionProfile), querySignature,
+      mockConnectionStrength, mockMaxConnectionStrength) shouldBe Set(("resultprofile", 1f))
+  }
+
+  "Passing a single gene expression profile and query signature to connectionScores" should
+    "return one connection strength tuple with score 0.5 when maxConnectionStrength has twice strength value" in {
+
+    val expressionProfile = new ReferenceProfile(name = "profile1", Map("gene1" -> 1, "gene2" -> -5, "gene3" -> 7))
+    val querySignature : Map[String, Int] = Map("gene2" -> 1, "gene3" -> 1)
+
+    val strength = 50
+
+    def mockConnectionStrength(prof: ReferenceProfile, query: Map[String, Int]): (String, Int) =
+      ("resultprofile", strength)
+
+    def mockMaxConnectionStrength(N: Int, m: Int): Int = strength * 2
+
+    connectionScores(Set(expressionProfile), querySignature,
+      mockConnectionStrength, mockMaxConnectionStrength) shouldBe Set(("resultprofile", 0.5f))
   }
 
 }
