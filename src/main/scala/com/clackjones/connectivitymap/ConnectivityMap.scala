@@ -24,6 +24,17 @@ object ConnectivityMap {
     (referenceProfile.name, strengths.toList.sum)
   }
 
+  def maximumConnectionScoreOrdered(totalNumberGenes: Int, genesInQuery: Int): Int = {
+    (1 to genesInQuery map (i =>
+      (totalNumberGenes - i + 1) * (genesInQuery - i + 1)
+      )).sum
+  }
+
+  def maximumConnectionScoreUnordered(totalNumberGenes: Int, genesInQuery: Int): Int = {
+    (1 to genesInQuery map (i =>
+      (totalNumberGenes - i + 1)
+      )).sum
+  }
 
   def connectionScores(profiles: Set[ReferenceProfile], querySignature: Map[String, Int],
                        connectionStrength: (ReferenceProfile, Map[String, Int]) => (String, Int)): Set[(String, Float)] = {
@@ -39,6 +50,4 @@ object ConnectivityMap {
 
     connectionStrengths map (connectionStrengthToScore(_, maxConnectionStrength))
   }
-
-
 }
