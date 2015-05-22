@@ -51,12 +51,15 @@ object ReferenceProfileFileLoader extends ReferenceProfileLoader {
     throw new NotImplementedError("loadReferenceProfiles not yet implemented")
   }
 
-  private def splitLine(line: String): (String, Int) = {
+  def splitLine(line: String): (String, Int) = {
     val splitLine = whitespacePattern.split(line.trim())
 
     val geneName = splitLine(0)
-    val geneStrength = splitLine(1).toInt
+    val geneStrength = splitLine(1) match {
+      case s if s.endsWith(".0") => s.substring(0, s.length - 2)
+      case s => s
+    }
 
-    (geneName, geneStrength)
+    (geneName, geneStrength.toInt)
   }
 }
