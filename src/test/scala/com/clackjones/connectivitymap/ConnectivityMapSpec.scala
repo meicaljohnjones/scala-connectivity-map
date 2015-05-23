@@ -9,8 +9,8 @@ class ConnectivityMapSpec extends UnitSpec {
     connectionStrength(expressionProfile, querySignature) shouldBe (expressionProfile.name, 2)
   }
 
-  "Passing a single gene expression profile and query signature to connectionScores" should
-    "return one connection strength tuple with score 1.0 when maxConnectionStrength has the same strength value" in {
+  "Passing a gene expression profile and query signature to connectionScore" should
+    "return a connection strength tuple with score 1.0 when maxConnectionStrength has the same strength value" in {
 
     val expressionProfile = new ReferenceProfile(name = "profile1", Map("gene1" -> 1, "gene2" -> -5, "gene3" -> 7))
     val querySignature : Map[String, Int] = Map("gene2" -> 1, "gene3" -> 1)
@@ -22,8 +22,8 @@ class ConnectivityMapSpec extends UnitSpec {
 
     val maxConnectionStrength: Int = strength
 
-    connectionScores(Set(expressionProfile), querySignature,
-      mockConnectionStrength, maxConnectionStrength) shouldBe Set(("resultprofile", 1f))
+    connectionScore(expressionProfile, querySignature,
+      mockConnectionStrength, maxConnectionStrength) shouldBe ("resultprofile", 1f)
   }
 
   "Passing a single gene expression profile and query signature to connectionScores" should
@@ -39,8 +39,8 @@ class ConnectivityMapSpec extends UnitSpec {
 
     val maxConnectionStrength: Int = strength * 2
 
-    connectionScores(Set(expressionProfile), querySignature,
-      mockConnectionStrength, maxConnectionStrength) shouldBe Set(("resultprofile", 0.5f))
+    connectionScore(expressionProfile, querySignature,
+      mockConnectionStrength, maxConnectionStrength) shouldBe ("resultprofile", 0.5f)
   }
 
 }
