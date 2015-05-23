@@ -38,18 +38,14 @@ object ConnectivityMap {
 
   def connectionScores(profiles: Set[ReferenceProfile], querySignature: Map[String, Int],
                        connectionStrength: (ReferenceProfile, Map[String, Int]) => (String, Int),
-                        maximumConnectionStrength: (Int, Int) => Int): Set[(String, Float)] = {
+                        maximumConnectionStrength: Int): Set[(String, Float)] = {
 
     val connectionStrengths = profiles map (connectionStrength(_, querySignature))
-
-    val totalNumberGenes = profiles.head.geneFoldChange.size
-    val genesInQuery = querySignature.size
-    val maxStrength = maximumConnectionStrength(totalNumberGenes, genesInQuery)
 
     def connectionStrengthToScore (strengthTuple: (String, Int), maxStrength: Float): (String, Float) = {
       (strengthTuple._1, strengthTuple._2 /  maxStrength)
     }
 
-    connectionStrengths map (connectionStrengthToScore(_, maxStrength))
+    connectionStrengths map (connectionStrengthToScore(_, maximumConnectionStrength))
   }
 }

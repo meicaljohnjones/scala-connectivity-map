@@ -20,10 +20,10 @@ class ConnectivityMapSpec extends UnitSpec {
     def mockConnectionStrength(prof: ReferenceProfile, query: Map[String, Int]): (String, Int) =
       ("resultprofile", strength)
 
-    def mockMaxConnectionStrength(N: Int, m: Int): Int = strength
+    val maxConnectionStrength: Int = strength
 
     connectionScores(Set(expressionProfile), querySignature,
-      mockConnectionStrength, mockMaxConnectionStrength) shouldBe Set(("resultprofile", 1f))
+      mockConnectionStrength, maxConnectionStrength) shouldBe Set(("resultprofile", 1f))
   }
 
   "Passing a single gene expression profile and query signature to connectionScores" should
@@ -37,10 +37,10 @@ class ConnectivityMapSpec extends UnitSpec {
     def mockConnectionStrength(prof: ReferenceProfile, query: Map[String, Int]): (String, Int) =
       ("resultprofile", strength)
 
-    def mockMaxConnectionStrength(N: Int, m: Int): Int = strength * 2
+    val maxConnectionStrength: Int = strength * 2
 
     connectionScores(Set(expressionProfile), querySignature,
-      mockConnectionStrength, mockMaxConnectionStrength) shouldBe Set(("resultprofile", 0.5f))
+      mockConnectionStrength, maxConnectionStrength) shouldBe Set(("resultprofile", 0.5f))
   }
 
 }
