@@ -32,6 +32,9 @@ object ReferenceProfileFileLoader extends ReferenceProfileLoader {
   override def loadReferenceProfile(path: String): ReferenceProfile = {
     val srcFile = Source.fromFile(path).getLines()
 
+    //skip titles line
+    srcFile.next()
+
     val geneFoldChange = (srcFile map (line => splitLine(line))).toMap
     val name = path match {
       case s if s.contains("/") => path.substring(s.lastIndexOf("/") + 1)

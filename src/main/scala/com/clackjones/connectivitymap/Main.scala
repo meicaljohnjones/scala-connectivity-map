@@ -1,8 +1,14 @@
 package com.clackjones.connectivitymap
+import java.io.File
 
 object Main {
 
   def main(args: Array[String]): Unit = {
+
+    //list all the files
+    val directory = new File("/home/mike/workspace/sscmap-in-r/reffiles")
+    val files = directory.list() map (filename => directory.getAbsolutePath+"/"+filename)
+
 
     //load the query signature and the reference profile
     val querySig = Map("201291_s_at" ->	1, "201292_at" ->	1, "201508_at" ->	1,
@@ -15,11 +21,25 @@ object Main {
     val genesInQuery = querySig.size
     val maxConnectionStrength = ConnectivityMap.maximumConnectionStrengthUnordered(totalNumberGenes, genesInQuery)
 
-    // calculate the connection score
-    val connectionScore = ConnectivityMap.connectionScore(refProfile, querySig, ConnectivityMap.connectionStrength,
-      maxConnectionStrength)
 
-    println(connectionScore)
+    println("Start stuff")
+    // TODO for each file in files
+
+    val startTime = System.nanoTime()
+
+    val scores = files.toList.map (path => {
+      val profile = ReferenceProfileFileLoader.loadReferenceProfile(path)
+
+      val connectionStrength = ConnectivityMap.connectionScore(profile, querySig, ConnectivityMap.connectionStrength,
+        maxConnectionStrength)
+
+      connectionStrength
+    })
+
+    val endTime = System.nanoTime()
+
+    println("Done. Time elapsed: "+ (endTime - startTime) + "ns")
+    //scores foreach (println(_))
   }
 
 }
