@@ -1,8 +1,8 @@
 # To Do
 * Next - Estimate p-values by creating random query signatures
 * Build a File reader that loads:
-    1. `ReferenceProfiles`
-    1. ~~Query signatures~~
+    1. ~~`ReferenceProfiles`~~
+    1. Query signatures (possibly create a `QuerySignatures` class first
 * Write a `Main` class that
     * ~~loads the reference profiles~~
     * loads an example query Signature
