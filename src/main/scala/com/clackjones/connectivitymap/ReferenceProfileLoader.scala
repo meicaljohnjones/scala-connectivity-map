@@ -10,13 +10,6 @@ trait ReferenceProfileLoader {
    * @return a ReferenceProfile object
    */
   def loadReferenceProfile(path: String): ReferenceProfile
-
-  /**
-   * Loads a set of ReferenceProfiles
-   * @param path path to the set of Reference Profiles
-   * @return
-   */
-  def loadReferenceProfiles(path: String): Set[ReferenceProfile]
 }
 
 
@@ -42,16 +35,6 @@ object ReferenceProfileFileLoader extends ReferenceProfileLoader {
     }
 
     new ReferenceProfile(name, geneFoldChange)
-  }
-
-  /**
-   * Loads a set of ReferenceProfiles
-   * @param path path to the set of Reference Profiles
-   * @return
-   */
-  override def loadReferenceProfiles(path: String): Set[ReferenceProfile] = {
-    // TODO
-    throw new NotImplementedError("loadReferenceProfiles not yet implemented")
   }
 
   def splitLine(line: String): (String, Int) = {
