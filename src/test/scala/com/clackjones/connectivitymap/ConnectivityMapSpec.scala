@@ -42,7 +42,7 @@ class ConnectivityMapSpec extends UnitSpec {
   }
 
   "generateRandomSignature" should "generate a random signature from a list of gene IDs with values (-1, 1)" in {
-    val geneIds: List[String] = (1 to 10 map (i => "gene_"+i)).toList
+    val geneIds: Array[String] = (1 to 10 map (i => "gene_"+i)).toArray
     println(geneIds)
     val signatureLength = 5
 

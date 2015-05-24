@@ -57,7 +57,7 @@ object ConnectivityMap {
    * @param nextRandomGeneIndex A function that randomly generates integers in the range [0, profile.size)
    * @param nextRandomUpDown A function that randomly generates numbers 1 or -1
    */
-  def generateRandomSignature(geneIds: List[String], signatureLength: Int,
+  def generateRandomSignature(geneIds: Array[String], signatureLength: Int,
                               nextRandomGeneIndex: () => Int, nextRandomUpDown: () => Int): Map[String, Int] = {
 
     val selectedGeneIds: List[String] =  List.range(0, signatureLength) map (i =>
