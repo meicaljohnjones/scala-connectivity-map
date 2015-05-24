@@ -23,16 +23,18 @@ object ReferenceProfileFileLoader extends ReferenceProfileLoader {
    * @return a ReferenceProfile object
    */
   override def loadReferenceProfile(path: String): ReferenceProfile = {
-    val srcFile = Source.fromFile(path).getLines()
+    val srcFile = Source.fromFile(path)
+    val lines = srcFile.getLines()
 
     //skip titles line
-    srcFile.next()
+    lines.next()
 
-    val geneFoldChange = (srcFile map (line => splitLine(line))).toMap
+    val geneFoldChange = (lines map (line => splitLine(line))).toMap
     val name = path match {
       case s if s.contains("/") => path.substring(s.lastIndexOf("/") + 1)
       case _ => path
     }
+    srcFile.close()
 
     new ReferenceProfile(name, geneFoldChange)
   }
