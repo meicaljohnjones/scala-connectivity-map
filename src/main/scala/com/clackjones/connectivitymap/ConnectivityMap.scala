@@ -9,19 +9,13 @@ object ConnectivityMap {
    * @return a tuple containing the name of the reference profile and its connection strength
    */
   def connectionStrength(referenceProfile: ReferenceProfile, querySignature: Map[String, Int]): (String, Int) = {
-    val keys = querySignature.keys.toSet
 
-    val filteredReferenceProfile = referenceProfile.geneFoldChange filterKeys (refKey => keys contains refKey)
+    val strengths = querySignature.par.map {case (geneId, reg) => {
+      val foldChange = referenceProfile.geneFoldChange(geneId)
+      foldChange * reg
+    }}
 
-    val strengths = filteredReferenceProfile map {
-      case (key, value) => {
-        querySignature get key match {
-          case Some(rank) => value * rank
-        }
-      }
-    }
-
-    (referenceProfile.name, strengths.toList.sum)
+    (referenceProfile.name,strengths.par.foldLeft(0)(_+_))
   }
 
   def maximumConnectionStrengthOrdered(totalNumberGenes: Int, genesInQuery: Int): Int = {
