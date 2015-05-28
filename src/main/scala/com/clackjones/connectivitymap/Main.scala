@@ -9,10 +9,12 @@ object  Main {
   def main(args: Array[String]): Unit = {
 
     //list all the files
-    val directory = new File("/home/mike/workspace/sscmap-in-r/reffiles")
+
+    val directory = new File(getClass().getResource("/reffiles").toURI())
     val files = directory.list() map (filename => directory.getAbsolutePath + "/" + filename)
 
-    val querySig = QuerySignatureFileLoader.loadQuerySignature("/home/mike/workspace/sscmap-in-r/queries/Estrogen.sig")
+    val estrogenSignature = new File(getClass().getResource("/queries/Estrogen.sig").toURI())
+    val querySig = QuerySignatureFileLoader.loadQuerySignature(estrogenSignature.getAbsolutePath())
     val refProfile = ReferenceProfileFileLoader.loadReferenceProfile(files(0))
 
     // calculate the max score
@@ -25,6 +27,7 @@ object  Main {
     val sigLength = querySig.size
 
 
+    printf("Runing random signature generation")
     // generate random signatures
     val randomSignatures = (List.range(0,10000).par.map {i =>
       val randomNumberGen = new Random()
@@ -35,6 +38,7 @@ object  Main {
         getRandomGeneIndex, getRandomUpDown)
     }).par
 
+    printf("Calculating scores")
 
     val fileNamesBuffer: ArrayBuffer[String] = ArrayBuffer() ++ files
 
