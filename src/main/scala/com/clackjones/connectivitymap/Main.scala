@@ -10,7 +10,7 @@ object  Main {
 
     //list all the files
 
-    val directory = new File(getClass().getResource("/reffiles").toURI())
+    val directory = new File(getClass().getResource("/reffiles_subset").toURI())
     val files = directory.list() map (filename => directory.getAbsolutePath + "/" + filename)
 
     val estrogenSignature = new File(getClass().getResource("/queries/Estrogen.sig").toURI())
