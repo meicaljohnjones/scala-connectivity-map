@@ -4,7 +4,7 @@ package com.clackjones.connectivitymap
  * A class that simply stores the result for a particular connection score
  * for a single ReferenceProfile
  */
-class ConnectionResult(referenceProfileNames: Iterable[String], connectionScore: Float, pVal: Float) {
+class ConnectionResult(referenceProfileNames: Iterable[String], connectionScore: Double, pVal: Double) {
   override def toString(): String = {
     val profileNames = referenceProfileNames.mkString("\n")
     List("ConnectionResult:",profileNames,

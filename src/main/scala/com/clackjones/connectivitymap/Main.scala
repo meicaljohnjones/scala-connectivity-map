@@ -26,7 +26,7 @@ object  Main {
     val geneIdCount = geneIds.size
     val sigLength = querySig.size
 
-    val randomSignatureCount = 10000
+    val randomSignatureCount = 30000
 
     println("Running random signature generation")
     // generate random signatures
