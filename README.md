@@ -1,5 +1,5 @@
 # To Do
-* Stick `/reffiles` and `/queries` in `src/main/resources`
+* ~~Stick `/reffiles` and `/queries` in `src/main/resources`~~
 * Next - Estimate p-values by creating random query signatures
 * Write a `Main` class that
     * ~~loads the reference profiles~~

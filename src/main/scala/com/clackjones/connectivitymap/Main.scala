@@ -26,26 +26,27 @@ object  Main {
     val geneIdCount = geneIds.size
     val sigLength = querySig.size
 
+    val randomSignatureCount = 10000
 
-    printf("Runing random signature generation")
+    println("Running random signature generation")
     // generate random signatures
-    val randomSignatures = (List.range(0,10000).par.map {i =>
+    val randomSignatures = List.range(0,randomSignatureCount).par.map {i =>
       val randomNumberGen = new Random()
       def getRandomGeneIndex(): Int = randomNumberGen.nextInt(geneIdCount)
       def getRandomUpDown(): Int = if (randomNumberGen.nextInt(1) != 1) -1 else 1
 
       ConnectivityMap.generateRandomSignature(geneIds, sigLength,
         getRandomGeneIndex, getRandomUpDown)
-    }).par
+    }.par
 
-    printf("Calculating scores")
+    println("Calculating scores")
 
     val fileNamesBuffer: ArrayBuffer[String] = ArrayBuffer() ++ files
 
     val scores = fileNamesBuffer .par.map (path => {
       val profile = ReferenceProfileFileLoader.loadReferenceProfile(path)
 
-      val trueScore = ConnectivityMap.connectionScore(profile, querySig, ConnectivityMap.connectionStrength,
+      val trueScoreTuple = ConnectivityMap.connectionScore(profile, querySig, ConnectivityMap.connectionStrength,
         maxConnectionStrength)
 
       val randomScores = randomSignatures.par.map {sig =>
@@ -53,8 +54,16 @@ object  Main {
           maxConnectionStrength)
       }
 
-      trueScore
+      val trueScore = trueScoreTuple._2
+      val pVal = randomScores.foldLeft(0f)((count, randScoreTuple) => {
+        val randScore = randScoreTuple._2
+        if (randScore >= trueScore) count + 1 else count
+      }) / randomSignatureCount
+
+      new ConnectionResult(Set(trueScoreTuple._1), trueScore, pVal)
     })
+
+    scores foreach { println(_) }
 
   }
 }
