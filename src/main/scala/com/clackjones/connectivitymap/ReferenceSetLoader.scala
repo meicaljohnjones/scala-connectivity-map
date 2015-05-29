@@ -14,6 +14,17 @@ trait ReferenceSetLoader {
  */
 object ReferenceSetLoaderByDrugDoseAndCellLine extends ReferenceSetLoader {
   override def createReferenceSets(pathToFiles: String, filenames: Iterable[String]): Iterable[ReferenceSet] = {
-    throw new UnsupportedOperationException("createReferenceSets not yet implemented")
+
+    val path = if(!pathToFiles.endsWith("/")) pathToFiles + "/" else pathToFiles
+    val absolutePathToFilesAndReferenceSetNames: Iterable[(String, String)] = filenames map (f => {
+      (filenameToReferenceSetName(f), path + f)
+    })
+
+    //TODO group tuples
+
+    absolutePathToFilesAndReferenceSetNames map (absPathFilename =>
+      new ReferenceSet(absPathFilename._1, Set(absPathFilename._2)))
   }
+
+  private def filenameToReferenceSetName(filename: String) : String = filename.substring(0, filename.lastIndexOf("_"))
 }
