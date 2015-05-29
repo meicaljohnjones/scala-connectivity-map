@@ -1,3 +1,3 @@
 package com.clackjones.connectivitymap
 
-class ReferenceSet(name: String, filenames: Iterable[String])
+class ReferenceSet(val name: String, val filenames: Iterable[String])
