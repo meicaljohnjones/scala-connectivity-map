@@ -20,10 +20,14 @@ object ReferenceSetLoaderByDrugDoseAndCellLine extends ReferenceSetLoader {
       (filenameToReferenceSetName(f), path + f)
     })
 
-    //TODO group tuples
+    val referenceSetMap = absolutePathToFilesAndReferenceSetNames.groupBy(_._1).mapValues(_.map(_._2))
 
-    absolutePathToFilesAndReferenceSetNames map (absPathFilename =>
-      new ReferenceSet(absPathFilename._1, Set(absPathFilename._2)))
+    val referenceSets: Iterable[ReferenceSet] = referenceSetMap.keys map (setName => {
+      val setFilenames = referenceSetMap(setName)
+      new ReferenceSet(setName, setFilenames.toSet)
+    })
+
+    referenceSets
   }
 
   private def filenameToReferenceSetName(filename: String) : String = filename.substring(0, filename.lastIndexOf("_"))
