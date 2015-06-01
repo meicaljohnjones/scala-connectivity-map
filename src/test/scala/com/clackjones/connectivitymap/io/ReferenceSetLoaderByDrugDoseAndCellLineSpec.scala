@@ -24,8 +24,6 @@ class ReferenceSetLoaderByDrugDoseAndCellLineSpec extends UnitSpec {
     setName shouldEqual "cinpocetine_11.4muM_MCF7"
   }
 
-  // TODO write tests to check I'm correctly partition up reference sets
-
   it should "return an Iterator with one ReferenceSet in it for two file names with different experiment IDs but " +
     "with the same drug, dose and cell line" in  {
 
@@ -49,14 +47,74 @@ class ReferenceSetLoaderByDrugDoseAndCellLineSpec extends UnitSpec {
   }
 
   it should "return an Iterator with two ReferenceSet in it for two file names with different drugs" in {
-    fail("not yet implemented")
+    val path = "this/is/my/path"
+    val experimentId = 7213
+    val filenames = List(
+      "cinpocetine_11.4muM_MCF7_" + experimentId + ".ref.tab",
+      "winpocetine_11.4muM_MCF7_" + experimentId + ".ref.tab"
+    )
+
+    val result: Iterable[ReferenceSet] = ReferenceSetLoaderByDrugDoseAndCellLine.createReferenceSets(path, filenames)
+
+    result.size shouldEqual 2
+
+    val resultsList = result.toList
+
+    val refSet1 = resultsList.find(refset => refset.name.equals("cinpocetine_11.4muM_MCF7"))
+    refSet1 should not be empty
+
+    val refSet2 = resultsList.find(refset => refset.name.equals("winpocetine_11.4muM_MCF7"))
+    refSet2 should not be empty
+
+    refSet1.get.filenames.toList(0) shouldEqual path + "/" + filenames(0)
+    refSet2.get.filenames.toList(0) shouldEqual path + "/" + filenames(1)
   }
 
   it should "return an Iterator with two ReferenceSet in it for two file names with different doses" in {
-    fail("not yet implemented")
+    val path = "this/is/my/path"
+    val experimentId = 7213
+    val filenames = List(
+      "cinpocetine_11.4muM_MCF7_" + experimentId + ".ref.tab",
+      "cinpocetine_12.4muM_MCF7_" + experimentId + ".ref.tab"
+    )
+
+    val result: Iterable[ReferenceSet] = ReferenceSetLoaderByDrugDoseAndCellLine.createReferenceSets(path, filenames)
+
+    result.size shouldEqual 2
+
+    val resultsList = result.toList
+
+    val refSet1 = resultsList.find(refset => refset.name.equals("cinpocetine_11.4muM_MCF7"))
+    refSet1 should not be empty
+
+    val refSet2 = resultsList.find(refset => refset.name.equals("cinpocetine_12.4muM_MCF7"))
+    refSet2 should not be empty
+
+    refSet1.get.filenames.toList(0) shouldEqual path + "/" + filenames(0)
+    refSet2.get.filenames.toList(0) shouldEqual path + "/" + filenames(1)
   }
 
   it should "return an Iterator with two ReferenceSet in it for two file names with different cell lines" in {
-    fail("not yet implemented")
+    val path = "this/is/my/path"
+    val experimentId = 7213
+    val filenames = List(
+      "cinpocetine_11.4muM_MCF7_" + experimentId + ".ref.tab",
+      "cinpocetine_11.4muM_MCF8_" + experimentId + ".ref.tab"
+    )
+
+    val result: Iterable[ReferenceSet] = ReferenceSetLoaderByDrugDoseAndCellLine.createReferenceSets(path, filenames)
+
+    result.size shouldEqual 2
+
+    val resultsList = result.toList
+
+    val refSet1 = resultsList.find(refset => refset.name.equals("cinpocetine_11.4muM_MCF7"))
+    refSet1 should not be empty
+
+    val refSet2 = resultsList.find(refset => refset.name.equals("cinpocetine_11.4muM_MCF8"))
+    refSet2 should not be empty
+
+    refSet1.get.filenames.toList(0) shouldEqual path + "/" + filenames(0)
+    refSet2.get.filenames.toList(0) shouldEqual path + "/" + filenames(1)
   }
 }
