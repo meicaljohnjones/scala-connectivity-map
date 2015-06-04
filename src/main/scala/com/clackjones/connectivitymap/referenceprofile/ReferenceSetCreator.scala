@@ -1,4 +1,4 @@
-package com.clackjones.connectivitymap.io
+package com.clackjones.connectivitymap.referenceprofile
 
 import com.clackjones.connectivitymap.ReferenceSet
 
