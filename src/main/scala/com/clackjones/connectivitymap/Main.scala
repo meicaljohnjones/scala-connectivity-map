@@ -1,9 +1,9 @@
 package com.clackjones.connectivitymap
 import java.io.File
 import com.clackjones.connectivitymap.referenceprofile.ReferenceProfileFileLoader
+import com.clackjones.connectivitymap.querysignature.QuerySignatureFileLoader
 
-import scala.collection.mutable.{ArrayBuffer, ListBuffer}
-import scala.collection.parallel.immutable.ParHashMap
+import scala.collection.mutable.ArrayBuffer
 import scala.util.Random
 
 object  Main {

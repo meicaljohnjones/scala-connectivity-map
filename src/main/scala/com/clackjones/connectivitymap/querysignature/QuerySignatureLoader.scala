@@ -1,4 +1,4 @@
-package com.clackjones.connectivitymap
+package com.clackjones.connectivitymap.querysignature
 
 import com.clackjones.connectivitymap.utils.FileParsingUtil.splitLine
 
@@ -16,8 +16,6 @@ trait QuerySignatureLoader {
    */
   def loadQuerySignature(path: String): Map[String, Int]
 }
-
-import java.util.regex.Pattern
 
 import scala.io.Source
 
