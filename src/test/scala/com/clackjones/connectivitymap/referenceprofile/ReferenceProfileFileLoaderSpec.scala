@@ -1,0 +1,5 @@
+package com.clackjones.connectivitymap.referenceprofile
+
+import com.clackjones.connectivitymap.UnitSpec
+
+class ReferenceProfileFileLoaderSpec extends UnitSpec

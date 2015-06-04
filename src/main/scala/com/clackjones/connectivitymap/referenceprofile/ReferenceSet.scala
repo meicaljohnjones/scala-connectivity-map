@@ -1,4 +1,4 @@
-package com.clackjones.connectivitymap
+package com.clackjones.connectivitymap.referenceprofile
 
 /**
  * A class representing a ReferenceSet which contains a collection of

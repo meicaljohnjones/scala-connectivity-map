@@ -1,6 +1,5 @@
-package com.clackjones.connectivitymap
+package com.clackjones.connectivitymap.referenceprofile
 
-import java.util.regex.Pattern
 import com.clackjones.connectivitymap.utils.FileParsingUtil.splitLine
 
 trait ReferenceProfileLoader {

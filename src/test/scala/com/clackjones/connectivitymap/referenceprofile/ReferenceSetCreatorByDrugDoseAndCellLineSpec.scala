@@ -1,6 +1,6 @@
 package com.clackjones.connectivitymap.referenceprofile
 
-import com.clackjones.connectivitymap.{UnitSpec, ReferenceSet}
+import com.clackjones.connectivitymap.UnitSpec
 
 class ReferenceSetCreatorByDrugDoseAndCellLineSpec extends UnitSpec {
   "createReferenceSets" should "return an Iterator with one ReferenceSet in it " +

@@ -1,5 +1,7 @@
 package com.clackjones.connectivitymap
 
+import com.clackjones.connectivitymap.referenceprofile.ReferenceProfile
+
 object ConnectivityMap {
 
   /**

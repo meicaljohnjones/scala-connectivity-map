@@ -1,5 +1,6 @@
 package com.clackjones.connectivitymap
 import ConnectivityMap._
+import com.clackjones.connectivitymap.referenceprofile.ReferenceProfile
 
 class ConnectivityMapSpec extends UnitSpec {
   "A single gene expression profile and query signature" should "correctly calculate a single connection score" in {

@@ -1,4 +1,6 @@
-package com.clackjones.connectivitymap
+package com.clackjones.connectivitymap.referenceprofile
+
+import com.clackjones.connectivitymap.UnitSpec
 
 class ReferenceProfileSpec extends UnitSpec {
   "toString" should "be of the format 'ReferenceProfile: name'" in {

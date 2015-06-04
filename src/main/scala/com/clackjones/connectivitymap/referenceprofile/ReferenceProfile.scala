@@ -1,4 +1,4 @@
-package com.clackjones.connectivitymap
+package com.clackjones.connectivitymap.referenceprofile
 
 /**
  * A class containing a description of a reference profile

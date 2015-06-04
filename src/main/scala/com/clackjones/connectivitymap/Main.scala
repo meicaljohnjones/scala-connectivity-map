@@ -1,5 +1,7 @@
 package com.clackjones.connectivitymap
 import java.io.File
+import com.clackjones.connectivitymap.referenceprofile.ReferenceProfileFileLoader
+
 import scala.collection.mutable.{ArrayBuffer, ListBuffer}
 import scala.collection.parallel.immutable.ParHashMap
 import scala.util.Random

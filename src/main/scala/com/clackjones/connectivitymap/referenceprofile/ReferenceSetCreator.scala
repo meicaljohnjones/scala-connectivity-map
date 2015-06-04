@@ -1,7 +1,5 @@
 package com.clackjones.connectivitymap.referenceprofile
 
-import com.clackjones.connectivitymap.ReferenceSet
-
 trait ReferenceSetCreator {
   def createReferenceSets(pathToFiles: String, filenames: Iterable[String]): Iterable[ReferenceSet]
 }
