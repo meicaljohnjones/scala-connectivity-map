@@ -1,12 +1,12 @@
 package com.clackjones.connectivitymap
 import java.io.File
-import com.clackjones.connectivitymap.referenceprofile.ReferenceProfileFileLoader
 import com.clackjones.connectivitymap.querysignature.QuerySignatureFileLoader
+import com.clackjones.connectivitymap.referenceprofile.ReferenceProfileFileLoaderComponent
 
 import scala.collection.mutable.ArrayBuffer
 import scala.util.Random
 
-object  Main {
+object  Main extends ReferenceProfileFileLoaderComponent {
 
   def main(args: Array[String]): Unit = {
 
@@ -17,7 +17,7 @@ object  Main {
 
     val estrogenSignature = new File(getClass().getResource("/queries/Estrogen.sig").toURI())
     val querySig = QuerySignatureFileLoader.loadQuerySignature(estrogenSignature.getAbsolutePath())
-    val refProfile = ReferenceProfileFileLoader.loadReferenceProfile(files(0))
+    val refProfile = referenceProfileLoader.loadReferenceProfile(files(0))
 
     // calculate the max score
     val totalNumberGenes = refProfile.geneFoldChange.size
@@ -46,7 +46,7 @@ object  Main {
     val fileNamesBuffer: ArrayBuffer[String] = ArrayBuffer() ++ files
 
     val scores = fileNamesBuffer .par.map (path => {
-      val profile = ReferenceProfileFileLoader.loadReferenceProfile(path)
+      val profile = referenceProfileLoader.loadReferenceProfile(path)
 
       val trueScoreTuple = ConnectivityMap.connectionScore(profile, querySig, ConnectivityMap.connectionStrength,
         maxConnectionStrength)
