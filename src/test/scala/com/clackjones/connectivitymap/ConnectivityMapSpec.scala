@@ -44,7 +44,6 @@ class ConnectivityMapSpec extends UnitSpec {
 
   "generateRandomSignature" should "generate a random signature from a list of gene IDs with values (-1, 1)" in {
     val geneIds: Array[String] = (1 to 10 map (i => "gene_"+i)).toArray
-    println(geneIds)
     val signatureLength = 5
 
     def mockNextRandomGeneIndex = (for {i <- List(0,2,4,6,8) } yield i ).toIterator
@@ -52,8 +51,6 @@ class ConnectivityMapSpec extends UnitSpec {
 
     val result = generateRandomSignature(geneIds, signatureLength,
       mockNextRandomGeneIndex.next, mockNextRandomUpDown.next)
-
-    println(result)
 
     result.size shouldBe signatureLength
 
