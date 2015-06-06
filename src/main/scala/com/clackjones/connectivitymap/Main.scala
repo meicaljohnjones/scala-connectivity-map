@@ -5,16 +5,18 @@ import scala.collection.mutable.ArrayBuffer
 import scala.util.Random
 
 import com.clackjones.connectivitymap.querysignature.QuerySignatureFileLoaderComponent
-import com.clackjones.connectivitymap.referenceprofile.ReferenceProfileFileLoaderComponent
+import com.clackjones.connectivitymap.referenceprofile.{ReferenceSetFileLoaderComponent, ReferenceSet, ReferenceSetCreatorByDrugDoseAndCellLineComponent, ReferenceProfileFileLoaderComponent}
 
 object  Main extends ReferenceProfileFileLoaderComponent
-                    with QuerySignatureFileLoaderComponent {
+                    with QuerySignatureFileLoaderComponent
+                    with ReferenceSetCreatorByDrugDoseAndCellLineComponent
+                    with ReferenceSetFileLoaderComponent {
 
   def main(args: Array[String]): Unit = {
 
     //list all the files
 
-    val directory = new File(getClass().getResource("/reffiles_subset").toURI())
+    val directory = new File(getClass().getResource("/reffiles").toURI())
     val files = directory.list() map (filename => directory.getAbsolutePath + "/" + filename)
 
     val estrogenSignature = new File(getClass().getResource("/queries/Estrogen.sig").toURI())
@@ -43,12 +45,14 @@ object  Main extends ReferenceProfileFileLoaderComponent
         getRandomGeneIndex, getRandomUpDown)
     }.par
 
+    println("Create ReferenceSets")
+    val refSets : Iterable[ReferenceSet] = referenceSetCreator.createReferenceSets(directory.getAbsolutePath(), directory.list())
+
     println("Calculating scores")
 
-    val fileNamesBuffer: ArrayBuffer[String] = ArrayBuffer() ++ files
+    val scores = refSets.par.map (refSet => {
 
-    val scores = fileNamesBuffer .par.map (path => {
-      val profile = referenceProfileLoader.loadReferenceProfile(path)
+      val profile = referenceSetLoader.retrieveAverageReference(refSet)
 
       val trueScoreTuple = ConnectivityMap.connectionScore(profile, querySig, ConnectivityMap.connectionStrength,
         maxConnectionStrength)
