@@ -25,7 +25,7 @@ trait ReferenceSetLoaderComponent {
      * @param set the [[ReferenceSet]]
      * @return a [[ReferenceProfile]] with average fold changes of this set
      */
-    def retrieveAverageReference(set: ReferenceSet): Set[ReferenceProfile]
+    def retrieveAverageReference(set: ReferenceSet): ReferenceProfile
   }
 }
 
@@ -45,7 +45,7 @@ trait ReferenceSetFileLoaderComponent extends ReferenceSetLoaderComponent {
       (set.filenames map (referenceProfileLoader.loadReferenceProfile(_))).toSet
     }
 
-    def retrieveAverageReference(set: ReferenceSet): Set[ReferenceProfile] = {
+    def retrieveAverageReference(set: ReferenceSet): ReferenceProfile = {
       throw new UnsupportedOperationException("retrieveAverageReference not yet implemented")
     }
   }
