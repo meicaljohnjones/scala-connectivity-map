@@ -2,7 +2,8 @@ package com.clackjones.connectivitymap.referenceprofile
 
 import com.clackjones.connectivitymap.UnitSpec
 
-class ReferenceSetCreatorByDrugDoseAndCellLineSpec extends UnitSpec {
+class ReferenceSetCreatorByDrugDoseAndCellLineSpec extends UnitSpec with ReferenceSetCreatorByDrugDoseAndCellLineComponent {
+
   "createReferenceSets" should "return an Iterator with one ReferenceSet in it " +
     "for valid single filename" in {
 
@@ -12,7 +13,7 @@ class ReferenceSetCreatorByDrugDoseAndCellLineSpec extends UnitSpec {
       "cinpocetine_11.4muM_MCF7_" + experimentId + ".ref.tab"
     )
 
-    val result = ReferenceSetCreatorByDrugDoseAndCellLine.createReferenceSets(path, filenames)
+    val result = referenceSetCreator.createReferenceSets(path, filenames)
 
     result.size shouldEqual 1
     result.head.filenames.size shouldEqual 1
@@ -34,7 +35,7 @@ class ReferenceSetCreatorByDrugDoseAndCellLineSpec extends UnitSpec {
       "cinpocetine_11.4muM_MCF7_" + otherExperimentId + ".ref.tab"
     )
 
-    val result: Iterable[ReferenceSet] = ReferenceSetCreatorByDrugDoseAndCellLine.createReferenceSets(path, filenames)
+    val result: Iterable[ReferenceSet] = referenceSetCreator.createReferenceSets(path, filenames)
 
     val resultIt = result.toIterator
     result.size shouldEqual 1
@@ -53,7 +54,7 @@ class ReferenceSetCreatorByDrugDoseAndCellLineSpec extends UnitSpec {
       "winpocetine_11.4muM_MCF7_" + experimentId + ".ref.tab"
     )
 
-    val result: Iterable[ReferenceSet] = ReferenceSetCreatorByDrugDoseAndCellLine.createReferenceSets(path, filenames)
+    val result: Iterable[ReferenceSet] = referenceSetCreator.createReferenceSets(path, filenames)
 
     result.size shouldEqual 2
 
@@ -77,7 +78,7 @@ class ReferenceSetCreatorByDrugDoseAndCellLineSpec extends UnitSpec {
       "cinpocetine_12.4muM_MCF7_" + experimentId + ".ref.tab"
     )
 
-    val result: Iterable[ReferenceSet] = ReferenceSetCreatorByDrugDoseAndCellLine.createReferenceSets(path, filenames)
+    val result: Iterable[ReferenceSet] = referenceSetCreator.createReferenceSets(path, filenames)
 
     result.size shouldEqual 2
 
@@ -101,7 +102,7 @@ class ReferenceSetCreatorByDrugDoseAndCellLineSpec extends UnitSpec {
       "cinpocetine_11.4muM_MCF8_" + experimentId + ".ref.tab"
     )
 
-    val result: Iterable[ReferenceSet] = ReferenceSetCreatorByDrugDoseAndCellLine.createReferenceSets(path, filenames)
+    val result: Iterable[ReferenceSet] = referenceSetCreator.createReferenceSets(path, filenames)
 
     result.size shouldEqual 2
 
