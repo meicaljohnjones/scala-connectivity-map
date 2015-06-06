@@ -10,14 +10,14 @@ object ConnectivityMap {
    * @param querySignature
    * @return a tuple containing the name of the reference profile and its connection strength
    */
-  def connectionStrength(referenceProfile: ReferenceProfile, querySignature: Map[String, Int]): (String, Int) = {
+  def connectionStrength(referenceProfile: ReferenceProfile, querySignature: Map[String, Int]): (String, Float) = {
 
     val strengths = querySignature.par.map {case (geneId, reg) => {
       val foldChange = referenceProfile.geneFoldChange(geneId)
       foldChange * reg
     }}
 
-    (referenceProfile.name,strengths.par.foldLeft(0)(_+_))
+    (referenceProfile.name,strengths.par.foldLeft(0f)(_+_))
   }
 
   def maximumConnectionStrengthOrdered(totalNumberGenes: Int, genesInQuery: Int): Int = {
@@ -33,12 +33,12 @@ object ConnectivityMap {
   }
 
   def connectionScore(profile: ReferenceProfile, querySignature: Map[String, Int],
-                       connectionStrength: (ReferenceProfile, Map[String, Int]) => (String, Int),
-                        maximumConnectionStrength: Int): (String, Float) = {
+                       connectionStrength: (ReferenceProfile, Map[String, Int]) => (String, Float),
+                        maximumConnectionStrength: Float): (String, Float) = {
 
     val strength = connectionStrength(profile, querySignature)
 
-    def connectionStrengthToScore(strengthTuple: (String, Int), maxStrength: Float): (String, Float) = {
+    def connectionStrengthToScore(strengthTuple: (String, Float), maxStrength: Float): (String, Float) = {
       (strengthTuple._1, strengthTuple._2 / maxStrength)
     }
 

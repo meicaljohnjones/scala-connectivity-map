@@ -15,12 +15,12 @@ class ConnectivityMapSpec extends UnitSpec {
     val expressionProfile = new ReferenceProfile(name = "profile1", Map("gene1" -> 1, "gene2" -> -5, "gene3" -> 7))
     val querySignature : Map[String, Int] = Map("gene2" -> 1, "gene3" -> 1)
 
-    val strength = 50
+    val strength = 50f
 
-    def mockConnectionStrength(prof: ReferenceProfile, query: Map[String, Int]): (String, Int) =
+    def mockConnectionStrength(prof: ReferenceProfile, query: Map[String, Int]): (String, Float) =
       ("resultprofile", strength)
 
-    val maxConnectionStrength: Int = strength
+    val maxConnectionStrength: Float = strength
 
     connectionScore(expressionProfile, querySignature,
       mockConnectionStrength, maxConnectionStrength) shouldBe ("resultprofile", 1f)
@@ -33,10 +33,10 @@ class ConnectivityMapSpec extends UnitSpec {
 
     val strength = 50
 
-    def mockConnectionStrength(prof: ReferenceProfile, query: Map[String, Int]): (String, Int) =
+    def mockConnectionStrength(prof: ReferenceProfile, query: Map[String, Int]): (String, Float) =
       ("resultprofile", strength)
 
-    val maxConnectionStrength: Int = strength * 2
+    val maxConnectionStrength: Float = strength * 2
 
     connectionScore(expressionProfile, querySignature,
       mockConnectionStrength, maxConnectionStrength) shouldBe ("resultprofile", 0.5f)

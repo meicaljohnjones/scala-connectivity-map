@@ -1,7 +1,8 @@
 package com.clackjones.connectivitymap.referenceprofile
 
+import java.util.regex.Pattern
+
 import scala.io.Source
-import com.clackjones.connectivitymap.utils.FileParsingUtil.splitLine
 
 trait ReferenceProfileLoaderComponent {
   def referenceProfileLoader: ReferenceProfileLoader
@@ -20,6 +21,7 @@ trait ReferenceProfileLoaderComponent {
 
 trait ReferenceProfileFileLoaderComponent extends ReferenceProfileLoaderComponent {
   def referenceProfileLoader = new ReferenceProfileFileLoader
+  val whitespacePattern = Pattern.compile("\\s+")
 
   class ReferenceProfileFileLoader extends ReferenceProfileLoader {
     /**
@@ -43,5 +45,14 @@ trait ReferenceProfileFileLoaderComponent extends ReferenceProfileLoaderComponen
 
       new ReferenceProfile(name, geneFoldChange)
     }
+  }
+
+  def splitLine(line: String): (String, Float) = {
+    val splitLine = whitespacePattern.split(line.trim())
+
+    val geneName = splitLine(0)
+    val geneStrength = splitLine(1)
+
+    (geneName, geneStrength.toFloat)
   }
 }

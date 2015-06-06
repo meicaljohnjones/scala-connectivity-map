@@ -1,6 +1,6 @@
 package com.clackjones.connectivitymap.querysignature
 
-import com.clackjones.connectivitymap.utils.FileParsingUtil.splitLine
+import java.util.regex.Pattern
 
 /**
  * A trait to describe the loading of a query signature (represented by a Map[String, Int])
@@ -20,7 +20,7 @@ trait QuerySignatureLoader {
 import scala.io.Source
 
 object QuerySignatureFileLoader extends QuerySignatureLoader {
-
+  val whitespacePattern = Pattern.compile("\\s+")
 
   /**
    * Loads an individual query signature from a file.
@@ -37,5 +37,14 @@ object QuerySignatureFileLoader extends QuerySignatureLoader {
     srcFile.next() // skip titles line
 
     (srcFile map (line => splitLine(line))).toMap
+  }
+
+  private def splitLine(line: String): (String, Int) = {
+    val splitLine = whitespacePattern.split(line.trim())
+
+    val geneName = splitLine(0)
+    val geneStrength = splitLine(1)
+
+    (geneName, geneStrength.toInt)
   }
 }
