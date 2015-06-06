@@ -3,12 +3,14 @@ package com.clackjones.connectivitymap.querysignature
 import java.util.regex.Pattern
 import scala.io.Source
 
+import com.clackjones.connectivitymap.QuerySignature
+
 
 trait QuerySignatureLoaderComponent {
   def querySignatureLoader : QuerySignatureLoader
 
   /**
-   * A trait to describe the loading of a query signature (represented by a Map[String, Int])
+   * A trait to describe the loading of a query signature (represented by a QuerySignature)
    * from a source
    */
   trait QuerySignatureLoader {
@@ -19,7 +21,7 @@ trait QuerySignatureLoaderComponent {
      * @return a map containing values mapping a gene's probe ID (String) to whether it should be
      *         upregulated (1) or down-regulated (-1)
      */
-    def loadQuerySignature(path: String): Map[String, Int]
+    def loadQuerySignature(path: String): QuerySignature
   }
 }
 
@@ -38,7 +40,7 @@ trait QuerySignatureFileLoaderComponent extends QuerySignatureLoaderComponent {
      * @return a map containing values mapping a gene's probe ID (String) to whether it should be
      *         upregulated (1) or down-regulated (-1)
      */
-    override def loadQuerySignature(path: String): Map[String, Int] = {
+    override def loadQuerySignature(path: String): QuerySignature = {
       val srcFile = Source.fromFile(path).getLines() filter (line => line.charAt(0) != '#')
 
       srcFile.next() // skip titles line

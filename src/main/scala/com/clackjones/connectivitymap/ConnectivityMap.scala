@@ -10,7 +10,7 @@ object ConnectivityMap {
    * @param querySignature
    * @return a tuple containing the name of the reference profile and its connection strength
    */
-  def connectionStrength(referenceProfile: ReferenceProfile, querySignature: Map[String, Int]): (String, Float) = {
+  def connectionStrength(referenceProfile: ReferenceProfile, querySignature: QuerySignature): (String, Float) = {
 
     val strengths = querySignature.par.map {case (geneId, reg) => {
       val foldChange = referenceProfile.geneFoldChange(geneId)
@@ -32,8 +32,8 @@ object ConnectivityMap {
       )).sum
   }
 
-  def connectionScore(profile: ReferenceProfile, querySignature: Map[String, Int],
-                       connectionStrength: (ReferenceProfile, Map[String, Int]) => (String, Float),
+  def connectionScore(profile: ReferenceProfile, querySignature: QuerySignature,
+                       connectionStrength: (ReferenceProfile, QuerySignature) => (String, Float),
                         maximumConnectionStrength: Float): (String, Float) = {
 
     val strength = connectionStrength(profile, querySignature)
@@ -54,7 +54,7 @@ object ConnectivityMap {
    * @param nextRandomUpDown A function that randomly generates numbers 1 or -1
    */
   def generateRandomSignature(geneIds: Array[String], signatureLength: Int,
-                              nextRandomGeneIndex: () => Int, nextRandomUpDown: () => Int): Map[String, Int] = {
+                              nextRandomGeneIndex: () => Int, nextRandomUpDown: () => Int): QuerySignature = {
 
     val selectedGeneIds: List[String] =  List.range(0, signatureLength) map (i =>
       nextRandomGeneIndex()) map (id =>
