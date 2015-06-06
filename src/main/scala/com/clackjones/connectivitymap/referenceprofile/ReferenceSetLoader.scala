@@ -46,7 +46,16 @@ trait ReferenceSetFileLoaderComponent extends ReferenceSetLoaderComponent {
     }
 
     def retrieveAverageReference(set: ReferenceSet): ReferenceProfile = {
-      throw new UnsupportedOperationException("retrieveAverageReference not yet implemented")
+      val geneFoldChanges = set.filenames map (referenceProfileLoader.loadReferenceProfile(_).geneFoldChange)
+      val geneIds = geneFoldChanges.head.keys
+      val profileCount = geneFoldChanges.size.toFloat
+
+      val avgFoldChange : Map[String, Float] = (geneIds map (gID => {
+        val sumFoldChange = geneFoldChanges.foldLeft(0f)(_ + _(gID))
+        (gID, sumFoldChange / profileCount)
+      })).toMap
+
+      new ReferenceProfile(set.name, avgFoldChange)
     }
   }
 

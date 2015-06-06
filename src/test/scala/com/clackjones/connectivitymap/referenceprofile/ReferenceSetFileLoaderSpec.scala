@@ -28,13 +28,12 @@ class ReferenceSetFileLoaderSpec extends UnitSpec {
       }
     }
   }
+  val referenceSetLoader = (new ReferenceSetFileLoaderComponent with MockReferenceProfileLoaderComponent).referenceSetLoader
 
   "ReferenceSetFileLoader" should "load a set of ReferenceProfiles from a ReferenceSet" in {
-    val referenceSetLoader = (new ReferenceSetFileLoaderComponent with MockReferenceProfileLoaderComponent).referenceSetLoader
 
     val refSet = new ReferenceSet("myrefset", Set("/path/to/profile1", "/path/to/profile2", "/path/to/profile3"))
-
-    val result = referenceSetLoader.retrieveAllProfiles(refSet)
+    val result : Set[ReferenceProfile] = referenceSetLoader.retrieveAllProfiles(refSet)
 
     result.size shouldEqual 3
     val resultList = result.toList
@@ -55,6 +54,18 @@ class ReferenceSetFileLoaderSpec extends UnitSpec {
     resultList(1).geneFoldChange("gene3") shouldBe 2
     resultList(2).geneFoldChange("gene3") shouldBe -1
 
+  }
+
+  it should "return one ReferenceProfile object when finding the average fold change of all profiles in this ReferenceSet" in {
+    val refSet = new ReferenceSet("myrefset", Set("/path/to/profile1", "/path/to/profile2", "/path/to/profile3"))
+    val result : ReferenceProfile = referenceSetLoader.retrieveAverageReference(refSet)
+
+    val geneFoldMap = result.geneFoldChange
+    geneFoldMap.size shouldEqual 3
+
+    geneFoldMap("gene1") shouldEqual (2 - 1 + 0) / 3f
+    geneFoldMap("gene2") shouldEqual (1 + 2 + 1) / 3f
+    geneFoldMap("gene3") shouldEqual (3 + 2 - 1) / 3f
   }
 
 }
