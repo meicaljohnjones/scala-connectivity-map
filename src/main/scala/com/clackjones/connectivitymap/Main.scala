@@ -1,12 +1,14 @@
 package com.clackjones.connectivitymap
-import java.io.File
-import com.clackjones.connectivitymap.querysignature.QuerySignatureFileLoader
-import com.clackjones.connectivitymap.referenceprofile.ReferenceProfileFileLoaderComponent
 
+import java.io.File
 import scala.collection.mutable.ArrayBuffer
 import scala.util.Random
 
-object  Main extends ReferenceProfileFileLoaderComponent {
+import com.clackjones.connectivitymap.querysignature.QuerySignatureFileLoaderComponent
+import com.clackjones.connectivitymap.referenceprofile.ReferenceProfileFileLoaderComponent
+
+object  Main extends ReferenceProfileFileLoaderComponent
+                    with QuerySignatureFileLoaderComponent {
 
   def main(args: Array[String]): Unit = {
 
@@ -16,7 +18,7 @@ object  Main extends ReferenceProfileFileLoaderComponent {
     val files = directory.list() map (filename => directory.getAbsolutePath + "/" + filename)
 
     val estrogenSignature = new File(getClass().getResource("/queries/Estrogen.sig").toURI())
-    val querySig = QuerySignatureFileLoader.loadQuerySignature(estrogenSignature.getAbsolutePath())
+    val querySig = querySignatureLoader.loadQuerySignature(estrogenSignature.getAbsolutePath())
     val refProfile = referenceProfileLoader.loadReferenceProfile(files(0))
 
     // calculate the max score
