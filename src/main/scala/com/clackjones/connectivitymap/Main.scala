@@ -49,11 +49,11 @@ object  Main extends ReferenceProfileFileLoaderComponent
 
       val profile = referenceSetLoader.retrieveAverageReference(refSet)
 
-      val trueScoreTuple = ConnectivityMap.connectionScore(profile, querySig, ConnectivityMap.connectionStrength,
+      val trueScoreTuple = ConnectivityMap.calculateConnectionScore(profile, querySig, ConnectivityMap.calculateConnectionStrength,
         maxConnectionStrength)
 
       val randomScores = randomSignatures.par.map {sig =>
-        ConnectivityMap.connectionScore(profile, sig, ConnectivityMap.connectionStrength,
+        ConnectivityMap.calculateConnectionScore(profile, sig, ConnectivityMap.calculateConnectionStrength,
           maxConnectionStrength)
       }
 
