@@ -44,24 +44,4 @@ object ConnectivityMap {
 
     connectionStrengthToScore(strength, maximumConnectionStrength)
   }
-
-  /**
-   * A method to generate a random Query gene signature using a list of gene IDs
-   *
-   * @param geneIds List of gene ID strings (e.g. from a <code>ReferenceProfile</code>
-   * @param signatureLength The length of the signature to be generated
-   * @param nextRandomGeneIndex A function that randomly generates integers in the range [0, profile.size)
-   * @param nextRandomUpDown A function that randomly generates numbers 1 or -1
-   */
-  def generateRandomSignature(geneIds: Array[String], signatureLength: Int,
-                              nextRandomGeneIndex: () => Int, nextRandomUpDown: () => Int): QuerySignature = {
-
-    val selectedGeneIds: List[String] =  List.range(0, signatureLength) map (i =>
-      nextRandomGeneIndex()) map (id =>
-      geneIds(id))
-
-    val randomQuerySignature = (selectedGeneIds map {(_, nextRandomUpDown()) }).toMap
-
-    randomQuerySignature
-  }
 }

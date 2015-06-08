@@ -4,19 +4,20 @@ import java.io.File
 import scala.collection.mutable.ArrayBuffer
 import scala.util.Random
 
-import com.clackjones.connectivitymap.querysignature.QuerySignatureFileLoaderComponent
+import com.clackjones.connectivitymap.querysignature.{DefaultRandomSignatureGeneratorComponent, QuerySignatureFileLoaderComponent}
 import com.clackjones.connectivitymap.referenceprofile.{ReferenceSetFileLoaderComponent, ReferenceSet, ReferenceSetCreatorByDrugDoseAndCellLineComponent, ReferenceProfileFileLoaderComponent}
 
 object  Main extends ReferenceProfileFileLoaderComponent
                     with QuerySignatureFileLoaderComponent
                     with ReferenceSetCreatorByDrugDoseAndCellLineComponent
-                    with ReferenceSetFileLoaderComponent {
+                    with ReferenceSetFileLoaderComponent
+                    with DefaultRandomSignatureGeneratorComponent {
 
   def main(args: Array[String]): Unit = {
 
     //list all the files
 
-    val directory = new File(getClass().getResource("/reffiles").toURI())
+    val directory = new File(getClass().getResource("/reffiles_subset").toURI())
     val files = directory.list() map (filename => directory.getAbsolutePath + "/" + filename)
 
     val estrogenSignature = new File(getClass().getResource("/queries/Estrogen.sig").toURI())
@@ -29,7 +30,6 @@ object  Main extends ReferenceProfileFileLoaderComponent
     val maxConnectionStrength = ConnectivityMap.maximumConnectionStrengthUnordered(totalNumberGenes, genesInQuery)
 
     val geneIds = refProfile.geneFoldChange.keys.toArray
-    val geneIdCount = geneIds.size
     val sigLength = querySig.size
 
     val randomSignatureCount = 30000
@@ -37,12 +37,7 @@ object  Main extends ReferenceProfileFileLoaderComponent
     println("Running random signature generation")
     // generate random signatures
     val randomSignatures = List.range(0,randomSignatureCount).par.map {i =>
-      val randomNumberGen = new Random()
-      def getRandomGeneIndex(): Int = randomNumberGen.nextInt(geneIdCount)
-      def getRandomUpDown(): Int = if (randomNumberGen.nextInt(1) != 1) -1 else 1
-
-      ConnectivityMap.generateRandomSignature(geneIds, sigLength,
-        getRandomGeneIndex, getRandomUpDown)
+      randomSignatureGenerator.generateRandomSignature(geneIds, sigLength)
     }.par
 
     println("Create ReferenceSets")

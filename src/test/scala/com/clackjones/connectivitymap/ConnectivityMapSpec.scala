@@ -41,23 +41,4 @@ class ConnectivityMapSpec extends UnitSpec {
     connectionScore(expressionProfile, querySignature,
       mockConnectionStrength, maxConnectionStrength) shouldBe ("resultprofile", 0.5f)
   }
-
-  "generateRandomSignature" should "generate a random signature from a list of gene IDs with values (-1, 1)" in {
-    val geneIds: Array[String] = (1 to 10 map (i => "gene_"+i)).toArray
-    val signatureLength = 5
-
-    def mockNextRandomGeneIndex = (for {i <- List(0,2,4,6,8) } yield i ).toIterator
-    def mockNextRandomUpDown = (for {i <- List(1,-1,-1,-1,1) } yield i ).toIterator
-
-    val result = generateRandomSignature(geneIds, signatureLength,
-      mockNextRandomGeneIndex.next, mockNextRandomUpDown.next)
-
-    result.size shouldBe signatureLength
-
-    result get "gene_1" shouldBe Some(1)
-    result get "gene_3" shouldBe Some(-1)
-    result get "gene_5" shouldBe Some(-1)
-    result get "gene_7" shouldBe Some(-1)
-    result get "gene_9" shouldBe Some(1)
-  }
 }
