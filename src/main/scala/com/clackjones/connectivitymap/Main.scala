@@ -49,7 +49,7 @@ object  Main extends ReferenceProfileFileLoaderComponent
       val profile : ReferenceProfile = referenceSetLoader.retrieveAverageReference(refSet)
 
       connectivityMap.calculateConnectionScore(profile, querySig, randomSignatures,
-        connectivityMap.calculateConnectionStrength, maxConnectionStrength, refSet.filenames.size)
+        maxConnectionStrength, refSet.filenames.size)
     })
 
     scores foreach { println(_) }

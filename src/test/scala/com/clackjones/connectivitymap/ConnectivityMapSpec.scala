@@ -6,7 +6,7 @@ class ConnectivityMapSpec extends UnitSpec with ConnectivityMapModule {
     val expressionProfile = new ReferenceProfile(name = "profile1", Map("gene1" -> 1, "gene2" -> -5, "gene3" -> 7))
     val querySignature : QuerySignature = Map("gene2" -> 1, "gene3" -> 1)
 
-    connectivityMap.calculateConnectionStrength(expressionProfile, querySignature) shouldBe (expressionProfile.name, 2)
+    connectivityMap.calculateConnectionStrength(expressionProfile, querySignature) shouldBe 2
   }
 
   "calculateConnectionScoreImpl" should "return a connection strength tuple with score 1.0 when maxConnectionStrength has the same strength value" in {
@@ -16,13 +16,13 @@ class ConnectivityMapSpec extends UnitSpec with ConnectivityMapModule {
 
     val strength = 50f
 
-    def mockConnectionStrength(prof: ReferenceProfile, query: QuerySignature): (String, Float) =
-      ("resultprofile", strength)
+    def mockConnectionStrength(prof: ReferenceProfile, query: QuerySignature): Float =
+      strength
 
     val maxConnectionStrength: Float = strength
 
     connectivityMap.calculateConnectionScoreImpl(expressionProfile, querySignature,
-      mockConnectionStrength, maxConnectionStrength) shouldBe ("resultprofile", 1f)
+      mockConnectionStrength, maxConnectionStrength) shouldBe 1f
   }
 
   it should "return one connection strength tuple with score 0.5 when maxConnectionStrength has twice strength value" in {
@@ -32,12 +32,11 @@ class ConnectivityMapSpec extends UnitSpec with ConnectivityMapModule {
 
     val strength = 50
 
-    def mockConnectionStrength(prof: ReferenceProfile, query: QuerySignature): (String, Float) =
-      ("resultprofile", strength)
+    def mockConnectionStrength(prof: ReferenceProfile, query: QuerySignature): Float = strength
 
     val maxConnectionStrength: Float = strength * 2
 
     connectivityMap.calculateConnectionScoreImpl(expressionProfile, querySignature,
-      mockConnectionStrength, maxConnectionStrength) shouldBe ("resultprofile", 0.5f)
+      mockConnectionStrength, maxConnectionStrength) shouldBe 0.5f
   }
 }

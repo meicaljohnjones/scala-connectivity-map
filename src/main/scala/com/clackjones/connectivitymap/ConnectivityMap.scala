@@ -13,14 +13,14 @@ trait ConnectivityMapModule {
      * @param querySignature
      * @return a tuple containing the name of the reference profile and its connection strength
      */
-    def calculateConnectionStrength(referenceProfile: ReferenceProfile, querySignature: QuerySignature): (String, Float) = {
+    def calculateConnectionStrength(referenceProfile: ReferenceProfile, querySignature: QuerySignature): Float = {
 
       val strengths = querySignature.par.map { case (geneId, reg) => {
         val foldChange = referenceProfile.geneFoldChange(geneId)
         foldChange * reg
       }}
 
-      (referenceProfile.name, strengths.par.foldLeft(0f)(_ + _))
+      strengths.par.foldLeft(0f)(_ + _)
     }
 
     def maximumConnectionStrengthOrdered(totalNumberGenes: Int, genesInQuery: Int): Int = {
@@ -36,24 +36,20 @@ trait ConnectivityMapModule {
     }
 
     def calculateConnectionScoreImpl(profile: ReferenceProfile, querySignature: QuerySignature,
-                                 connectionStrength: (ReferenceProfile, QuerySignature) => (String, Float),
-                                 maximumConnectionStrength: Float): (String, Float) = {
+                                 connectionStrength: (ReferenceProfile, QuerySignature) => Float,
+                                 maximumConnectionStrength: Float): Float = {
 
       val strength = connectionStrength(profile, querySignature)
-
-      def connectionStrengthToScore(strengthTuple: (String, Float), maxStrength: Float): (String, Float) = {
-        (strengthTuple._1, strengthTuple._2 / maxStrength)
-      }
+      def connectionStrengthToScore(strength: Float, maxStrength: Float): Float = strength / maxStrength
 
       connectionStrengthToScore(strength, maximumConnectionStrength)
     }
 
     def calculateConnectionScore(profile: ReferenceProfile, querySignature: QuerySignature,
                                  randomQuerySignatures : Iterable[QuerySignature],
-                                 connectionStrength: (ReferenceProfile, QuerySignature) => (String, Float),
                                  maximumConnectionStrength: Float, setSize: Int): ConnectionScoreResult = {
 
-      val trueScoreTuple = connectivityMap.calculateConnectionScoreImpl(profile, querySignature, connectivityMap.calculateConnectionStrength,
+      val trueScore = connectivityMap.calculateConnectionScoreImpl(profile, querySignature, connectivityMap.calculateConnectionStrength,
         maximumConnectionStrength)
 
       val randomScores = randomQuerySignatures.par.map { sig =>
@@ -61,9 +57,7 @@ trait ConnectivityMapModule {
           maximumConnectionStrength)
       }
 
-      val trueScore = trueScoreTuple._2
-      val pVal = randomScores.foldLeft(0f)((count, randScoreTuple) => {
-        val randScore = randScoreTuple._2
+      val pVal = randomScores.foldLeft(0f)((count, randScore) => {
         if (randScore >= trueScore) count + 1 else count
       }) / randomQuerySignatures.size
 
