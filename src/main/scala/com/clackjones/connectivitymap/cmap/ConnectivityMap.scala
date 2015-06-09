@@ -1,5 +1,6 @@
-package com.clackjones.connectivitymap
+package com.clackjones.connectivitymap.cmap
 
+import com.clackjones.connectivitymap._
 import com.clackjones.connectivitymap.referenceprofile.ReferenceProfile
 
 trait ConnectivityMapModule {

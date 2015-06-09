@@ -2,6 +2,7 @@ package com.clackjones.connectivitymap
 
 import java.io.File
 
+import com.clackjones.connectivitymap.cmap.ConnectivityMapModule
 import com.clackjones.connectivitymap.querysignature.{DefaultRandomSignatureGeneratorComponent, QuerySignatureFileLoaderComponent}
 import com.clackjones.connectivitymap.referenceprofile._
 
