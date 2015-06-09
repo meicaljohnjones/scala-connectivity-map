@@ -9,7 +9,7 @@ class ConnectivityMapSpec extends UnitSpec with ConnectivityMapModule {
     connectivityMap.calculateConnectionStrength(expressionProfile, querySignature) shouldBe (expressionProfile.name, 2)
   }
 
-  "calculateConnectionScore" should "return a connection strength tuple with score 1.0 when maxConnectionStrength has the same strength value" in {
+  "calculateConnectionScoreImpl" should "return a connection strength tuple with score 1.0 when maxConnectionStrength has the same strength value" in {
 
     val expressionProfile = new ReferenceProfile(name = "profile1", Map("gene1" -> 1, "gene2" -> -5, "gene3" -> 7))
     val querySignature : QuerySignature = Map("gene2" -> 1, "gene3" -> 1)
@@ -21,7 +21,7 @@ class ConnectivityMapSpec extends UnitSpec with ConnectivityMapModule {
 
     val maxConnectionStrength: Float = strength
 
-    connectivityMap.calculateConnectionScore(expressionProfile, querySignature,
+    connectivityMap.calculateConnectionScoreImpl(expressionProfile, querySignature,
       mockConnectionStrength, maxConnectionStrength) shouldBe ("resultprofile", 1f)
   }
 
@@ -37,7 +37,7 @@ class ConnectivityMapSpec extends UnitSpec with ConnectivityMapModule {
 
     val maxConnectionStrength: Float = strength * 2
 
-    connectivityMap.calculateConnectionScore(expressionProfile, querySignature,
+    connectivityMap.calculateConnectionScoreImpl(expressionProfile, querySignature,
       mockConnectionStrength, maxConnectionStrength) shouldBe ("resultprofile", 0.5f)
   }
 }

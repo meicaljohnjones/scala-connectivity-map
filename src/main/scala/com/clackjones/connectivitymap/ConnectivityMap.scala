@@ -35,7 +35,7 @@ trait ConnectivityMapModule {
         )).sum
     }
 
-    def calculateConnectionScore(profile: ReferenceProfile, querySignature: QuerySignature,
+    def calculateConnectionScoreImpl(profile: ReferenceProfile, querySignature: QuerySignature,
                                  connectionStrength: (ReferenceProfile, QuerySignature) => (String, Float),
                                  maximumConnectionStrength: Float): (String, Float) = {
 
@@ -47,6 +47,36 @@ trait ConnectivityMapModule {
 
       connectionStrengthToScore(strength, maximumConnectionStrength)
     }
+
+    def calculateConnectionScore(profile: ReferenceProfile, querySignature: QuerySignature,
+                                 randomQuerySignatures : Iterable[QuerySignature],
+                                 connectionStrength: (ReferenceProfile, QuerySignature) => (String, Float),
+                                 maximumConnectionStrength: Float, setSize: Int): ConnectionScoreResult = {
+
+      val trueScoreTuple = connectivityMap.calculateConnectionScoreImpl(profile, querySignature, connectivityMap.calculateConnectionStrength,
+        maximumConnectionStrength)
+
+      val randomScores = randomQuerySignatures.par.map { sig =>
+        connectivityMap.calculateConnectionScoreImpl(profile, sig, connectivityMap.calculateConnectionStrength,
+          maximumConnectionStrength)
+      }
+
+      val trueScore = trueScoreTuple._2
+      val pVal = randomScores.foldLeft(0f)((count, randScoreTuple) => {
+        val randScore = randScoreTuple._2
+        if (randScore >= trueScore) count + 1 else count
+      }) / randomQuerySignatures.size
+
+      new ConnectionScoreResult(profile.name, trueScore, pVal, setSize)
+
+    }
   }
 
+  case class ConnectionScoreResult(referenceSetName : String, connectionScore: Float, pValue: Float, setSize : Integer) {
+    override def toString(): String = {
+      List("ConnectionResult:",referenceSetName,
+        "Score: "+connectionScore.toString,
+        "P-value: "+pValue.toString).mkString("\n")
+    }
+  }
 }

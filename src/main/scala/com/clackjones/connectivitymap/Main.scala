@@ -3,7 +3,7 @@ package com.clackjones.connectivitymap
 import java.io.File
 
 import com.clackjones.connectivitymap.querysignature.{DefaultRandomSignatureGeneratorComponent, QuerySignatureFileLoaderComponent}
-import com.clackjones.connectivitymap.referenceprofile.{ReferenceSetFileLoaderComponent, ReferenceSet, ReferenceSetCreatorByDrugDoseAndCellLineComponent, ReferenceProfileFileLoaderComponent}
+import com.clackjones.connectivitymap.referenceprofile._
 
 object  Main extends ReferenceProfileFileLoaderComponent
                     with QuerySignatureFileLoaderComponent
@@ -35,9 +35,9 @@ object  Main extends ReferenceProfileFileLoaderComponent
 
     println("Running random signature generation")
     // generate random signatures
-    val randomSignatures = List.range(0,randomSignatureCount).par.map {i =>
+    val randomSignatures = List.range(0,randomSignatureCount).map {i =>
       randomSignatureGenerator.generateRandomSignature(geneIds, sigLength)
-    }.par
+    }
 
     println("Create ReferenceSets")
     val refSets : Iterable[ReferenceSet] = referenceSetCreator.createReferenceSets(directory.getAbsolutePath(), directory.list())
@@ -46,23 +46,10 @@ object  Main extends ReferenceProfileFileLoaderComponent
 
     val scores = refSets.par.map (refSet => {
 
-      val profile = referenceSetLoader.retrieveAverageReference(refSet)
+      val profile : ReferenceProfile = referenceSetLoader.retrieveAverageReference(refSet)
 
-      val trueScoreTuple = connectivityMap.calculateConnectionScore(profile, querySig, connectivityMap.calculateConnectionStrength,
-        maxConnectionStrength)
-
-      val randomScores = randomSignatures.par.map {sig =>
-        connectivityMap.calculateConnectionScore(profile, sig, connectivityMap.calculateConnectionStrength,
-          maxConnectionStrength)
-      }
-
-      val trueScore = trueScoreTuple._2
-      val pVal = randomScores.foldLeft(0f)((count, randScoreTuple) => {
-        val randScore = randScoreTuple._2
-        if (randScore >= trueScore) count + 1 else count
-      }) / randomSignatureCount
-
-      new ConnectionResult(Set(trueScoreTuple._1), trueScore, pVal)
+      connectivityMap.calculateConnectionScore(profile, querySig, randomSignatures,
+        connectivityMap.calculateConnectionStrength, maxConnectionStrength, refSet.filenames.size)
     })
 
     scores foreach { println(_) }
