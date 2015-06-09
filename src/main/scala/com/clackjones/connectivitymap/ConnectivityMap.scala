@@ -40,9 +40,8 @@ trait ConnectivityMapModule {
                                  maximumConnectionStrength: Float): Float = {
 
       val strength = connectionStrength(profile, querySignature)
-      def connectionStrengthToScore(strength: Float, maxStrength: Float): Float = strength / maxStrength
 
-      connectionStrengthToScore(strength, maximumConnectionStrength)
+      strength / maximumConnectionStrength
     }
 
     def calculateConnectionScore(profile: ReferenceProfile, querySignature: QuerySignature,
