@@ -1,8 +1,6 @@
 package com.clackjones.connectivitymap
 
 import java.io.File
-import scala.collection.mutable.ArrayBuffer
-import scala.util.Random
 
 import com.clackjones.connectivitymap.querysignature.{DefaultRandomSignatureGeneratorComponent, QuerySignatureFileLoaderComponent}
 import com.clackjones.connectivitymap.referenceprofile.{ReferenceSetFileLoaderComponent, ReferenceSet, ReferenceSetCreatorByDrugDoseAndCellLineComponent, ReferenceProfileFileLoaderComponent}
@@ -11,7 +9,8 @@ object  Main extends ReferenceProfileFileLoaderComponent
                     with QuerySignatureFileLoaderComponent
                     with ReferenceSetCreatorByDrugDoseAndCellLineComponent
                     with ReferenceSetFileLoaderComponent
-                    with DefaultRandomSignatureGeneratorComponent {
+                    with DefaultRandomSignatureGeneratorComponent
+                    with ConnectivityMapModule {
 
   def main(args: Array[String]): Unit = {
 
@@ -27,7 +26,7 @@ object  Main extends ReferenceProfileFileLoaderComponent
     // calculate the max score
     val totalNumberGenes = refProfile.geneFoldChange.size
     val genesInQuery = querySig.size
-    val maxConnectionStrength = ConnectivityMap.maximumConnectionStrengthUnordered(totalNumberGenes, genesInQuery)
+    val maxConnectionStrength = connectivityMap.maximumConnectionStrengthUnordered(totalNumberGenes, genesInQuery)
 
     val geneIds = refProfile.geneFoldChange.keys.toArray
     val sigLength = querySig.size
@@ -49,11 +48,11 @@ object  Main extends ReferenceProfileFileLoaderComponent
 
       val profile = referenceSetLoader.retrieveAverageReference(refSet)
 
-      val trueScoreTuple = ConnectivityMap.calculateConnectionScore(profile, querySig, ConnectivityMap.calculateConnectionStrength,
+      val trueScoreTuple = connectivityMap.calculateConnectionScore(profile, querySig, connectivityMap.calculateConnectionStrength,
         maxConnectionStrength)
 
       val randomScores = randomSignatures.par.map {sig =>
-        ConnectivityMap.calculateConnectionScore(profile, sig, ConnectivityMap.calculateConnectionStrength,
+        connectivityMap.calculateConnectionScore(profile, sig, connectivityMap.calculateConnectionStrength,
           maxConnectionStrength)
       }
 
