@@ -25,11 +25,11 @@ trait FileBasedQuerySignatureProvider extends QuerySignatureProviderComponent {
   class FileBasedQuerySignatureProvider extends QuerySignatureProvider {
     val queries = new File(getClass().getResource(config("querySignatureLocation")).toURI()).getAbsolutePath()
 
-    def findAll() : Set[QuerySignature] = {
+    override def findAll() : Set[QuerySignature] = {
       throw new UnsupportedOperationException("findAll not yet implemented")
     }
 
-    def find (signatureId: String) : QuerySignature = {
+    override def find (signatureId: String) : QuerySignature = {
       val sig = querySignatureLoader.loadQuerySignature(s"$queries/$signatureId.sig")
       QuerySignature(signatureId, sig)
     }
