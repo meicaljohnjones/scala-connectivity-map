@@ -14,7 +14,7 @@ trait ConnectivityMapModule {
      * @param querySignature
      * @return a tuple containing the name of the reference profile and its connection strength
      */
-    def calculateConnectionStrength(referenceProfile: ReferenceProfile, querySignature: QuerySignature): Float = {
+    def calculateConnectionStrength(referenceProfile: ReferenceProfile, querySignature: QuerySignatureMap): Float = {
 
       val strengths = querySignature.par.map { case (geneId, reg) => {
         val foldChange = referenceProfile.geneFoldChange(geneId)
@@ -36,8 +36,8 @@ trait ConnectivityMapModule {
         )).sum
     }
 
-    def calculateConnectionScoreImpl(profile: ReferenceProfile, querySignature: QuerySignature,
-                                 connectionStrength: (ReferenceProfile, QuerySignature) => Float,
+    def calculateConnectionScoreImpl(profile: ReferenceProfile, querySignature: QuerySignatureMap,
+                                 connectionStrength: (ReferenceProfile, QuerySignatureMap) => Float,
                                  maximumConnectionStrength: Float): Float = {
 
       val strength = connectionStrength(profile, querySignature)
@@ -45,8 +45,8 @@ trait ConnectivityMapModule {
       strength / maximumConnectionStrength
     }
 
-    def calculateConnectionScore(profile: ReferenceProfile, querySignature: QuerySignature,
-                                 randomQuerySignatures : Iterable[QuerySignature],
+    def calculateConnectionScore(profile: ReferenceProfile, querySignature: QuerySignatureMap,
+                                 randomQuerySignatures : Iterable[QuerySignatureMap],
                                  maximumConnectionStrength: Float, setSize: Int): ConnectionScoreResult = {
 
       val trueScore = connectivityMap.calculateConnectionScoreImpl(profile, querySignature, connectivityMap.calculateConnectionStrength,

@@ -1,8 +1,10 @@
 package com.clackjones
 
-/**
- * Created by mike on 06/06/15.
- */
 package object connectivitymap {
-  type QuerySignature = Map[String, Int]
+  type QuerySignatureMap = Map[String, Int]
+
+  val config = Map(
+    "reffileLocation" -> "/reffiles_subset",
+    "querySignatureLocation" -> "/queries"
+  )
 }

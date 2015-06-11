@@ -1,6 +1,6 @@
 package com.clackjones.connectivitymap.querysignature
 
-import com.clackjones.connectivitymap.QuerySignature
+import com.clackjones.connectivitymap.QuerySignatureMap
 import org.apache.commons.math3.random.RandomDataGenerator
 import scala.collection.JavaConverters._
 
@@ -8,7 +8,7 @@ trait RandomSignatureGeneratorComponent {
   def randomSignatureGenerator : RandomSignatureGenerator
 
   trait RandomSignatureGenerator {
-    def generateRandomSignature(geneIds: Array[String], signatureLength: Int) : QuerySignature
+    def generateRandomSignature(geneIds: Array[String], signatureLength: Int) : QuerySignatureMap
   }
 }
 
@@ -25,7 +25,7 @@ trait DefaultRandomSignatureGeneratorComponent extends RandomSignatureGeneratorC
      * @param geneIds List of gene ID strings (e.g. from a <code>ReferenceProfile</code>
      * @param signatureLength The length of the signature to be generated
      */
-    override def generateRandomSignature(geneIds: Array[String], signatureLength: Int) : QuerySignature = {
+    override def generateRandomSignature(geneIds: Array[String], signatureLength: Int) : QuerySignatureMap = {
       val geneIdsJ = asJavaCollectionConverter(geneIds.toList).asJavaCollection
 
       val selectedGeneIds = randomDataGenerator.nextSample(geneIdsJ, signatureLength) map (obj => {

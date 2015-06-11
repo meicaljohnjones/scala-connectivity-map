@@ -3,7 +3,7 @@ package com.clackjones.connectivitymap.querysignature
 import java.util.regex.Pattern
 import scala.io.Source
 
-import com.clackjones.connectivitymap.QuerySignature
+import com.clackjones.connectivitymap.QuerySignatureMap
 
 
 trait QuerySignatureLoaderComponent {
@@ -21,7 +21,7 @@ trait QuerySignatureLoaderComponent {
      * @return a map containing values mapping a gene's probe ID (String) to whether it should be
      *         upregulated (1) or down-regulated (-1)
      */
-    def loadQuerySignature(path: String): QuerySignature
+    def loadQuerySignature(path: String): QuerySignatureMap
   }
 }
 
@@ -40,7 +40,7 @@ trait QuerySignatureFileLoaderComponent extends QuerySignatureLoaderComponent {
      * @return a map containing values mapping a gene's probe ID (String) to whether it should be
      *         upregulated (1) or down-regulated (-1)
      */
-    override def loadQuerySignature(path: String): QuerySignature = {
+    override def loadQuerySignature(path: String): QuerySignatureMap = {
       val srcFile = Source.fromFile(path).getLines() filter (line => line.charAt(0) != '#')
 
       srcFile.next() // skip titles line
