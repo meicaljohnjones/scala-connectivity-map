@@ -5,6 +5,7 @@ package object connectivitymap {
 
   val config = Map(
     "reffileLocation" -> "/reffiles_subset",
-    "querySignatureLocation" -> "/queries"
+    "querySignatureLocation" -> "/queries",
+    "defaultSignatureCount" -> "30000"
   )
 }

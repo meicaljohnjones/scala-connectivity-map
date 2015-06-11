@@ -66,11 +66,5 @@ trait ConnectivityMapModule {
     }
   }
 
-  case class ConnectionScoreResult(referenceSetName : String, connectionScore: Float, pValue: Float, setSize : Integer) {
-    override def toString(): String = {
-      List("ConnectionResult:",referenceSetName,
-        "Score: "+connectionScore.toString,
-        "P-value: "+pValue.toString).mkString("\n")
-    }
-  }
+  case class ConnectionScoreResult(referenceSetName : String, connectionScore: Float, pValue: Float, setSize : Integer)
 }

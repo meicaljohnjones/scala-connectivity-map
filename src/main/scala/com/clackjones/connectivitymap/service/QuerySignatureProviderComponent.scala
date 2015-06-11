@@ -13,9 +13,9 @@ trait QuerySignatureProviderComponent {
     def find (signatureId: String) : QuerySignature
 
   }
-
-  case class QuerySignature(val name: String, val geneUpDown : Map[String, Int])
 }
+
+case class QuerySignature(val name: String, val geneUpDown : Map[String, Int])
 
 trait FileBasedQuerySignatureProvider extends QuerySignatureProviderComponent {
   this: QuerySignatureLoaderComponent =>

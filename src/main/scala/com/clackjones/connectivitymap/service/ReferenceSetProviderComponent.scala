@@ -12,21 +12,22 @@ trait ReferenceSetProviderComponent {
     def findAll() : Iterable[ReferenceSet]
   }
 
-  case class ReferenceSet(val name: String, val filenames: Iterable[String])
 }
+
+case class ReferenceSet(val name: String, val filenames: Iterable[String])
 
 trait FileBasedReferenceSetProviderComponent extends ReferenceSetProviderComponent {
   this: ReferenceSetCreatorComponent =>
   val referenceSetProvider = new FileBasedReferenceSetProvider
 
   class FileBasedReferenceSetProvider extends ReferenceSetProvider {
-    val reffiles : File = new File(getClass().getResource(config("reffileLocation")).toURI())
+    val reffiles: File = new File(getClass().getResource(config("reffileLocation")).toURI())
 
     override def findAll(): Iterable[ReferenceSet] = {
       val pathToFiles = reffiles.getAbsolutePath()
       val filenames = reffiles.list()
 
-      val refsets : Iterable[ReferenceSet] = referenceSetCreator.createReferenceSets(pathToFiles, filenames) map {
+      val refsets: Iterable[ReferenceSet] = referenceSetCreator.createReferenceSets(pathToFiles, filenames) map {
         refset => ReferenceSet(refset.name, refset.filenames)
       }
 
