@@ -3,10 +3,9 @@ package com.clackjones.connectivitymap.service
 import com.clackjones.connectivitymap._
 
 class Experiment {
-  var refsets : Option[ReferenceSet] = None
+  var refsets : Option[Set[ReferenceSet]] = None
   var querySignature : Option[QuerySignature] = None
   var randomSignatureCount : Int = config("defaultSignatureCount").toInt
-  var experimentResult : Option[ExperimentResult] = None
 }
 
 class ExperimentResult(scores: Iterable[ConnectionScoreResult])

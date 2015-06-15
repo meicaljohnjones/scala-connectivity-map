@@ -66,5 +66,6 @@ trait ConnectivityMapModule {
     }
   }
 
-  case class ConnectionScoreResult(referenceSetName : String, connectionScore: Float, pValue: Float, setSize : Integer)
 }
+
+case class ConnectionScoreResult(referenceSetName : String, connectionScore: Float, pValue: Float, setSize : Integer)
