@@ -1,59 +1,41 @@
 package com.clackjones.connectivitymap
 
-import java.io.File
-
 import com.clackjones.connectivitymap.cmap.ConnectivityMapModule
 import com.clackjones.connectivitymap.querysignature.{DefaultRandomSignatureGeneratorComponent, QuerySignatureFileLoaderComponent}
-import com.clackjones.connectivitymap.referenceprofile._
+import com.clackjones.connectivitymap.referenceprofile.{ReferenceProfileFileLoaderComponent, ReferenceSetFileLoaderComponent, ReferenceSetCreatorByDrugDoseAndCellLineComponent}
+import com.clackjones.connectivitymap.service._
 
-object  Main extends ReferenceProfileFileLoaderComponent
-                    with QuerySignatureFileLoaderComponent
-                    with ReferenceSetCreatorByDrugDoseAndCellLineComponent
-                    with ReferenceSetFileLoaderComponent
-                    with DefaultRandomSignatureGeneratorComponent
-                    with ConnectivityMapModule {
+/**
+ * Run an example connectivity map
+ */
+class ConnectivityMapServiceRunner {
+  this: QuerySignatureProviderComponent with ReferenceSetProviderComponent with ExperimentRunnerComponent =>
+
+  def runExample(): Unit = {
+    println("Creating experiment object")
+    val experiment = new Experiment
+    experiment.querySignature = Some(querySignatureProvider.find("Estrogen"))
+    experiment.refsets = Some(referenceSetProvider.findAll().toSet)
+    experiment.randomSignatureCount = 30000
+
+    println("Running experiment...")
+    val experimentResult = experimentRunner.runExperimentUnorderedConnectionScore(experiment)
+
+    val result : ExperimentResult = experimentResult.get
+    result.scores foreach (println)
+  }
+}
+
+object Main {
 
   def main(args: Array[String]): Unit = {
+    val connectivityMapRunner = new ConnectivityMapServiceRunner
+      with FileBasedQuerySignatureProviderComponent with QuerySignatureFileLoaderComponent
+      with FileBasedReferenceSetProviderComponent with ReferenceSetCreatorByDrugDoseAndCellLineComponent
+      with DefaultExperimentRunnerComponent with ConnectivityMapModule
+      with ReferenceSetFileLoaderComponent with ReferenceProfileFileLoaderComponent
+      with DefaultRandomSignatureGeneratorComponent
 
-    //list all the files
-
-    val directory = new File(getClass().getResource("/reffiles_subset").toURI())
-    val files = directory.list() map (filename => directory.getAbsolutePath + "/" + filename)
-
-    val estrogenSignature = new File(getClass().getResource("/queries/Estrogen.sig").toURI())
-    val querySig = querySignatureLoader.loadQuerySignature(estrogenSignature.getAbsolutePath())
-    val refProfile = referenceProfileLoader.loadReferenceProfile(files(0))
-
-    // calculate the max score
-    val totalNumberGenes = refProfile.geneFoldChange.size
-    val genesInQuery = querySig.size
-    val maxConnectionStrength = connectivityMap.maximumConnectionStrengthUnordered(totalNumberGenes, genesInQuery)
-
-    val geneIds = refProfile.geneFoldChange.keys.toArray
-    val sigLength = querySig.size
-
-    val randomSignatureCount = 30000
-
-    println("Running random signature generation")
-    // generate random signatures
-    val randomSignatures = List.range(0,randomSignatureCount).map {i =>
-      randomSignatureGenerator.generateRandomSignature(geneIds, sigLength)
-    }
-
-    println("Create ReferenceSets")
-    val refSets : Iterable[ReferenceSet] = referenceSetCreator.createReferenceSets(directory.getAbsolutePath(), directory.list())
-
-    println("Calculating scores")
-
-    val scores = refSets.par.map (refSet => {
-
-      val profile : ReferenceProfile = referenceSetLoader.retrieveAverageReference(refSet)
-
-      connectivityMap.calculateConnectionScore(profile, querySig, randomSignatures,
-        maxConnectionStrength, refSet.filenames.size)
-    })
-
-    scores foreach { println(_) }
-
+    connectivityMapRunner.runExample()
   }
 }

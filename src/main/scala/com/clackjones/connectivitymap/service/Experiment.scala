@@ -8,7 +8,7 @@ class Experiment {
   var randomSignatureCount : Int = config("defaultSignatureCount").toInt
 }
 
-class ExperimentResult(scores: Iterable[ConnectionScoreResult])
+class ExperimentResult(val scores: Iterable[ConnectionScoreResult])
 
 case class ConnectionScoreResult(referenceSetName: String, connectionScore: Float, pValue: Float, setSize: Integer) {
   override def toString(): String = {
