@@ -1,13 +1,19 @@
 lazy val commonSettings = Seq(
     organization := "com.clackjones",
-    version := "1.0",
+    version := "0.1.0",
     scalaVersion := "2.11.6"
 )
+
+ivyScala := ivyScala.value map { _.copy(overrideScalaVersion = true) }
 
 lazy val root = (project in file(".")).
   settings(
     name := "scala-connectivity-map",
     libraryDependencies += "org.scalatest" %% "scalatest" % "2.2.4",
     libraryDependencies += "org.scalacheck" %% "scalacheck" % "1.12.2" % "test",
-    libraryDependencies += "org.apache.commons" % "commons-math3" % "3.2"
+    libraryDependencies += "org.apache.commons" % "commons-math3" % "3.2",
+    libraryDependencies += "org.scalatra" %% "scalatra" % "2.3.1",
+    libraryDependencies += "org.scalatra" %% "scalatra-scalate" % "2.3.1",
+    libraryDependencies += "javax.servlet" % "javax.servlet-api" % "3.0.1",
+    libraryDependencies += "org.eclipse.jetty" % "jetty-webapp" % "8.1.8.v20121106"
   )
