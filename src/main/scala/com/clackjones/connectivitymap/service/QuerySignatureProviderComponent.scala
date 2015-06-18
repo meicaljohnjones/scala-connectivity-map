@@ -1,6 +1,6 @@
 package com.clackjones.connectivitymap.service
 
-import com.clackjones.connectivitymap.querysignature.{QuerySignatureLoaderComponent, QuerySignatureFileLoaderComponent}
+import com.clackjones.connectivitymap.querysignature.QuerySignatureFileLoaderComponent
 import com.clackjones.connectivitymap._
 import java.io.File
 
@@ -17,8 +17,8 @@ trait QuerySignatureProviderComponent {
 
 case class QuerySignature(val name: String, val geneUpDown : Map[String, Int])
 
-trait FileBasedQuerySignatureProviderComponent extends QuerySignatureProviderComponent {
-  this: QuerySignatureLoaderComponent =>
+trait FileBasedQuerySignatureProviderComponent extends QuerySignatureProviderComponent
+    with QuerySignatureFileLoaderComponent {
 
   def querySignatureProvider = new FileBasedQuerySignatureProvider
 
