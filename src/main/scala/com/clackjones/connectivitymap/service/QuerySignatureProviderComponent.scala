@@ -9,8 +9,8 @@ trait QuerySignatureProviderComponent {
   def querySignatureProvider : QuerySignatureProvider
 
   trait QuerySignatureProvider {
-    def findAll() : Set[QuerySignature]
-    def find (signatureId: String) : QuerySignature
+    def findAll() : Option[Set[QuerySignature]]
+    def find (signatureId: String) : Option[QuerySignature]
 
   }
 }
@@ -25,13 +25,15 @@ trait FileBasedQuerySignatureProviderComponent extends QuerySignatureProviderCom
   class FileBasedQuerySignatureProvider extends QuerySignatureProvider {
     val queries = new File(getClass().getResource(config("querySignatureLocation")).toURI()).getAbsolutePath()
 
-    override def findAll() : Set[QuerySignature] = {
+    override def findAll() : Option[Set[QuerySignature]] = {
       throw new UnsupportedOperationException("findAll not yet implemented")
     }
 
-    override def find (signatureId: String) : QuerySignature = {
-      val sig = querySignatureLoader.loadQuerySignature(s"$queries/$signatureId.sig")
-      QuerySignature(signatureId, sig)
+    override def find (signatureId: String) : Option[QuerySignature] = {
+      querySignatureLoader.loadQuerySignature(s"$queries/$signatureId.sig") match {
+        case Some(sig) => return Some(QuerySignature(signatureId, sig))
+        case None => return None
+      }
     }
   }
 }

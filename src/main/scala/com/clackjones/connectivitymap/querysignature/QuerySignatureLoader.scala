@@ -1,5 +1,6 @@
 package com.clackjones.connectivitymap.querysignature
 
+import java.io.File
 import java.util.regex.Pattern
 import scala.io.Source
 
@@ -21,7 +22,7 @@ trait QuerySignatureLoaderComponent {
      * @return a map containing values mapping a gene's probe ID (String) to whether it should be
      *         upregulated (1) or down-regulated (-1)
      */
-    def loadQuerySignature(path: String): QuerySignatureMap
+    def loadQuerySignature(path: String): Option[QuerySignatureMap]
   }
 }
 
@@ -40,12 +41,15 @@ trait QuerySignatureFileLoaderComponent extends QuerySignatureLoaderComponent {
      * @return a map containing values mapping a gene's probe ID (String) to whether it should be
      *         upregulated (1) or down-regulated (-1)
      */
-    override def loadQuerySignature(path: String): QuerySignatureMap = {
+    override def loadQuerySignature(path: String): Option[QuerySignatureMap] = {
+      if (!(new File(path).exists())) {
+        return None
+      }
       val srcFile = Source.fromFile(path).getLines() filter (line => line.charAt(0) != '#')
 
       srcFile.next() // skip titles line
 
-      (srcFile map (line => splitLine(line))).toMap
+      return Some((srcFile map (line => splitLine(line))).toMap)
     }
 
     private def splitLine(line: String): (String, Int) = {

@@ -1,7 +1,7 @@
 package com.clackjones.connectivitymap.rest
 
 import com.clackjones.connectivitymap.service.FileBasedQuerySignatureProviderComponent
-import org.scalatra.ScalatraServlet
+import org.scalatra.{NotFound, Ok, ScalatraServlet}
 import org.scalatra.scalate.ScalateSupport
 
 // JSON-related libraries
@@ -29,8 +29,12 @@ class QuerySignatureController extends ScalatraServlet with ScalateSupport with 
    */
   get("/:name") {
     contentType = formats("json")
+    val sigName = params("name")
 
-    querySignatureProvider.find(params("name"))
+    querySignatureProvider.find(sigName) match {
+      case Some(sig) => Ok(sig)
+      case None => NotFound(s"Could not find signature with the name $sigName")
+    }
   }
 }
 
