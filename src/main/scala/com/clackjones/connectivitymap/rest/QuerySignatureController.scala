@@ -21,7 +21,7 @@ class QuerySignatureController extends ScalatraServlet with ScalateSupport with 
   get("/") {
     contentType = formats("json")
 
-    querySignatureProvider.findAll()
+    Ok(querySignatureProvider.findAll())
   }
 
   /**

@@ -1,1 +1,26 @@
-<html><body><h1>Hello world
+<html>
+    <body>
+        <h1>Connectivity Map</h1>
+
+        <script type="text/javascript">
+        var xmlHttpRequest = new XMLHttpRequest();
+
+        xmlHttpRequest.onreadystatechange = function() {
+                printQueryStringNames(JSON.parse(xmlHttpRequest.responseText));
+        }
+
+        xmlHttpRequest.open("GET", "http://localhost:8080/querysignature", false);
+        xmlHttpRequest.send();
+
+        function printQueryStringNames(querysignatures) {
+            var selectBox = document.createElement("select");
+            for (var i = 0; i < querysignatures.length; ++i) {
+                var opt = document.createElement("option");
+                opt.appendChild(document.createTextNode(querysignatures[i].name));
+                selectBox.appendChild(opt)
+            }
+            document.body.appendChild(selectBox);
+        }
+        </script>
+    </body>
+</html>
