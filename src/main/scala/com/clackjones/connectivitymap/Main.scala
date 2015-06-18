@@ -13,10 +13,7 @@ class ConnectivityMapServiceRunner {
 
   def runExample(): Unit = {
     println("Creating experiment object")
-    val experiment = new Experiment
-    experiment.querySignature = querySignatureProvider.find("Estrogen")
-    experiment.refsets = Some(referenceSetProvider.findAll().toSet)
-    experiment.randomSignatureCount = 30000
+    val experiment = Experiment(1, "Estrogen", 30000)
 
     println("Running experiment...")
     val experimentResult = experimentRunner.runExperimentUnorderedConnectionScore(experiment)

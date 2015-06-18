@@ -19,23 +19,26 @@ trait ExperimentRunnerComponent {
 }
 
 trait DefaultExperimentRunnerComponent extends ExperimentRunnerComponent {
-  this: RandomSignatureGeneratorComponent with ConnectivityMapModule with ReferenceSetLoaderComponent =>
+  this: RandomSignatureGeneratorComponent with ConnectivityMapModule
+    with ReferenceSetLoaderComponent with ReferenceSetProviderComponent
+    with QuerySignatureProviderComponent =>
   val experimentRunner = new DefaultExperimentRunner
 
   class DefaultExperimentRunner extends ExperimentRunner {
 
     def runExperimentUnorderedConnectionScore(experiment: Experiment) : Option[ExperimentResult] = {
-      if (isExperimentIncomplete(experiment)) {
-        println("Experiment can't be run")
+      val refsets : Set[ReferenceSet] = referenceSetProvider.findAll().toSet
+
+      val referenceSets : Set[ConnectivityMapReferenceSet] = refsets map {
+        s => new ConnectivityMapReferenceSet(s.name, s.filenames)
+      }
+
+      val serviceQuerySignature : Option[QuerySignature] = querySignatureProvider.find(experiment.querySignatureId)
+      if (!serviceQuerySignature.isDefined) {
         return None
       }
 
-      val referenceSets : Set[ConnectivityMapReferenceSet] = experiment.refsets.get map {
-        s =>
-        new ConnectivityMapReferenceSet(s.name, s.filenames)
-      }
-
-      val querySignature : QuerySignatureMap = experiment.querySignature.get.geneUpDown
+      val querySignature : QuerySignatureMap = serviceQuerySignature.get.geneUpDown
 
       val firstRefSet : ConnectivityMapReferenceSet = referenceSets.toIterator.next()
       val setProfiles : Set[ConnectivityMapReferenceProfile] = referenceSetLoader.retrieveAllProfiles(firstRefSet)
@@ -61,15 +64,11 @@ trait DefaultExperimentRunnerComponent extends ExperimentRunnerComponent {
         ConnectionScoreResult(c.referenceSetName, c.connectionScore, c.pValue, c.setSize)
       })
 
-      Some(new ExperimentResult(results))
+      Some(ExperimentResult(experiment.id, results))
     }
 
     def runExperimentOrderedConnectionScore (experiment: Experiment) : Option[ExperimentResult] = {
       throw new UnsupportedOperationException("runExperimentOrderedConnectionScore not yet implemented")
-    }
-
-    private def isExperimentIncomplete(exp: Experiment) : Boolean = {
-      exp.refsets == None || exp.refsets.get.size == 0 || exp.querySignature == None
     }
 
   }
