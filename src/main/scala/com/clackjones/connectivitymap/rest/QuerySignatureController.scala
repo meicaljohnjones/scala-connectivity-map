@@ -1,6 +1,6 @@
 package com.clackjones.connectivitymap.rest
 
-import com.clackjones.connectivitymap.service.FileBasedQuerySignatureProviderComponent
+import com.clackjones.connectivitymap.service.QuerySignatureProviderComponent
 import org.scalatra.{NotFound, Ok, ScalatraServlet}
 import org.scalatra.scalate.ScalateSupport
 
@@ -10,8 +10,8 @@ import org.json4s.{DefaultFormats, Formats}
 // JSON handling support from Scalatra
 import org.scalatra.json._
 
-class QuerySignatureController extends ScalatraServlet with ScalateSupport with JacksonJsonSupport
-  with FileBasedQuerySignatureProviderComponent {
+class QuerySignatureController extends ScalatraServlet with ScalateSupport with JacksonJsonSupport {
+  this: QuerySignatureProviderComponent =>
 
   protected implicit lazy val jsonFormats: Formats = DefaultFormats
 
