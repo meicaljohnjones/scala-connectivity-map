@@ -15,5 +15,7 @@ lazy val root = (project in file(".")).
     libraryDependencies += "org.scalatra" %% "scalatra" % "2.3.1",
     libraryDependencies += "org.scalatra" %% "scalatra-scalate" % "2.3.1",
     libraryDependencies += "javax.servlet" % "javax.servlet-api" % "3.0.1",
-    libraryDependencies += "org.eclipse.jetty" % "jetty-webapp" % "8.1.8.v20121106"
+    libraryDependencies += "org.eclipse.jetty" % "jetty-webapp" % "8.1.8.v20121106",
+    libraryDependencies += "org.scalatra" %% "scalatra-json" % "2.4.0.RC1",
+    libraryDependencies += "org.json4s"   %% "json4s-jackson" % "3.3.0.RC1"
   )
