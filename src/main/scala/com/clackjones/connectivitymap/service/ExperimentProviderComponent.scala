@@ -22,7 +22,7 @@ trait InMemoryExperimentProviderComponent extends ExperimentProviderComponent {
   val experimentProvider : ExperimentProvider = new InMemoryExperimentProvider
 
   class InMemoryExperimentProvider extends ExperimentProvider {
-    private val experimentSet : Set[Experiment] = Set[Experiment]()
+    private val experimentSet : Set[Experiment] = Set()
 
     override def find(experimentId: Int): Option[Experiment] = {
       experimentSet.find(_.id == experimentId)
