@@ -18,15 +18,20 @@ trait ExperimentRunnerComponent {
   }
 }
 
+/**
+ * This implementation also takes the Experiment and adds
+ * it to the ExperimentResultProvider when the ExperimentResult is created
+ */
 trait DefaultExperimentRunnerComponent extends ExperimentRunnerComponent {
   this: RandomSignatureGeneratorComponent with ConnectivityMapModule
     with ReferenceSetLoaderComponent with ReferenceSetProviderComponent
-    with QuerySignatureProviderComponent =>
+    with QuerySignatureProviderComponent with ExperimentResultProviderComponent =>
   val experimentRunner = new DefaultExperimentRunner
 
   class DefaultExperimentRunner extends ExperimentRunner {
 
     def runExperimentUnorderedConnectionScore(experiment: Experiment) : Option[ExperimentResult] = {
+
       val refsets : Set[ReferenceSet] = referenceSetProvider.findAll().toSet
 
       val referenceSets : Set[ConnectivityMapReferenceSet] = refsets map {
@@ -64,7 +69,10 @@ trait DefaultExperimentRunnerComponent extends ExperimentRunnerComponent {
         ConnectionScoreResult(c.referenceSetName, c.connectionScore, c.pValue, c.setSize)
       })
 
-      Some(ExperimentResult(experiment.id, results))
+      val experimentResult = ExperimentResult(experiment.id, results)
+      experimentResultProvider.add(experimentResult)
+
+      Some(experimentResult)
     }
 
     def runExperimentOrderedConnectionScore (experiment: Experiment) : Option[ExperimentResult] = {

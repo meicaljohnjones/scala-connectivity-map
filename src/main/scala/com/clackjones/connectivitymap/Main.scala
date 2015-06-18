@@ -9,16 +9,18 @@ import com.clackjones.connectivitymap.service._
  * Run an example connectivity map
  */
 class ConnectivityMapServiceRunner {
-  this: QuerySignatureProviderComponent with ReferenceSetProviderComponent with ExperimentRunnerComponent =>
+  this: QuerySignatureProviderComponent with ReferenceSetProviderComponent with ExperimentRunnerComponent
+  with InMemoryExperimentProviderComponent with InMemoryExperimentResultProviderComponent =>
 
   def runExample(): Unit = {
     println("Creating experiment object")
-    val experiment = Experiment(1, "Estrogen", 30000)
+    val experiment = Experiment(-1, "Estrogen", 30000)
+    val experimentWithId = experimentProvider.add(experiment)
 
     println("Running experiment...")
-    val experimentResult = experimentRunner.runExperimentUnorderedConnectionScore(experiment)
+    experimentRunner.runExperimentUnorderedConnectionScore(experimentWithId)
 
-    val result : ExperimentResult = experimentResult.get
+    val result : ExperimentResult = experimentResultProvider.find(experimentWithId.id).get
     result.scores foreach (println)
   }
 }
@@ -32,6 +34,7 @@ object Main {
       with DefaultExperimentRunnerComponent with ConnectivityMapModule
       with ReferenceSetFileLoaderComponent with ReferenceProfileFileLoaderComponent
       with DefaultRandomSignatureGeneratorComponent
+      with InMemoryExperimentProviderComponent with InMemoryExperimentResultProviderComponent
 
     connectivityMapRunner.runExample()
   }

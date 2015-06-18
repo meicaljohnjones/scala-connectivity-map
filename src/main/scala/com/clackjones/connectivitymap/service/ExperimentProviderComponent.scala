@@ -12,9 +12,9 @@ trait ExperimentProviderComponent {
     /**
      * Add an experiment object and set its ID number
      * @param experiment
-     * @return ID of this experiment
+     * @return experiment with its ID set
      */
-    def add(experiment: Experiment) : Int
+    def add(experiment: Experiment) : Experiment
   }
 }
 
@@ -32,11 +32,11 @@ trait InMemoryExperimentProviderComponent extends ExperimentProviderComponent {
       experimentSet
     }
 
-    override def add(experiment: Experiment): Int = {
+    override def add(experiment: Experiment): Experiment = {
       experiment.id = createNextExperimentId()
-      experimentProvider.add(experiment)
+      experimentSet.add(experiment)
 
-      experiment.id
+      experiment
     }
 
     private def createNextExperimentId() : Int = {
