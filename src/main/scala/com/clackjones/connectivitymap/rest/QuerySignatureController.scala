@@ -27,7 +27,7 @@ class QuerySignatureController extends ScalatraServlet with ScalateSupport with 
   /**
    * retrieve a specific query signature by name
    */
-  get("/:name") {
+  get("/id/:name") {
     contentType = formats("json")
     val sigName = params("name")
 
