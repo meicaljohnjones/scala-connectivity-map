@@ -1,6 +1,6 @@
 package com.clackjones.connectivitymap.rest
 
-import com.clackjones.connectivitymap.service.{Experiment, ExperimentProviderComponent}
+import com.clackjones.connectivitymap.service.{ExperimentRunnerComponent, Experiment, ExperimentProviderComponent}
 import org.scalatra.scalate.ScalateSupport
 import org.scalatra.{NotFound, Ok, ScalatraServlet}
 
@@ -11,7 +11,7 @@ import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.json._
 
 class ExperimentController extends ScalatraServlet with ScalateSupport with JacksonJsonSupport {
-  this: ExperimentProviderComponent =>
+  this: ExperimentProviderComponent with ExperimentRunnerComponent =>
 
   protected implicit lazy val jsonFormats: Formats = DefaultFormats
 
@@ -39,7 +39,11 @@ class ExperimentController extends ScalatraServlet with ScalateSupport with Jack
    */
   post("/") {
     val experiment = parsedBody.extract[Experiment]
-    experimentProvider.add(experiment)
+    val experimentWithId = experimentProvider.add(experiment)
+
+    experimentRunner.runExperimentUnorderedConnectionScore(experimentWithId)
+
+    experimentWithId
   }
 }
 
