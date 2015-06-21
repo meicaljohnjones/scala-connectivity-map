@@ -10,40 +10,43 @@ import org.json4s.{DefaultFormats, Formats}
 // JSON handling support from Scalatra
 import org.scalatra.json._
 
-class ExperimentController extends ScalatraServlet with ScalateSupport with JacksonJsonSupport {
+trait ExperimentControllerComponent {
   this: ExperimentProviderComponent with ExperimentRunnerComponent =>
+  val experimentController = new ExperimentController
 
-  protected implicit lazy val jsonFormats: Formats = DefaultFormats
+  class ExperimentController extends ScalatraServlet with ScalateSupport with JacksonJsonSupport {
+    protected implicit lazy val jsonFormats: Formats = DefaultFormats
 
-  get("/") {
-    contentType = formats("json")
+    get("/") {
+      contentType = formats("json")
 
-    Ok(experimentProvider.findAll())
-  }
-
-  /**
-   * retrieve a specific query signature by name
-   */
-  get("/id/:id") {
-    contentType = formats("json")
-    val id = params("id").toInt
-
-    experimentProvider.find(id) match {
-      case Some(sig) => Ok(sig)
-      case None => NotFound(s"Could not find experiment with the name $id")
+      Ok(experimentProvider.findAll())
     }
-  }
 
-  /**
-   * Add new experiment
-   */
-  post("/") {
-    val experiment = parsedBody.extract[Experiment]
-    val experimentWithId = experimentProvider.add(experiment)
+    /**
+     * retrieve a specific query signature by name
+     */
+    get("/id/:id") {
+      contentType = formats("json")
+      val id = params("id").toInt
 
-    experimentRunner.runExperimentUnorderedConnectionScore(experimentWithId)
+      experimentProvider.find(id) match {
+        case Some(sig) => Ok(sig)
+        case None => NotFound(s"Could not find experiment with the name $id")
+      }
+    }
 
-    experimentWithId
+    /**
+     * Add new experiment
+     */
+    post("/") {
+      val experiment = parsedBody.extract[Experiment]
+      val experimentWithId = experimentProvider.add(experiment)
+
+      experimentRunner.runExperimentUnorderedConnectionScore(experimentWithId)
+
+      experimentWithId
+    }
   }
 }
 

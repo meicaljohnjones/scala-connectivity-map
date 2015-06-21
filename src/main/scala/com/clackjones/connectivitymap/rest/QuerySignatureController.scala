@@ -10,31 +10,35 @@ import org.json4s.{DefaultFormats, Formats}
 // JSON handling support from Scalatra
 import org.scalatra.json._
 
-class QuerySignatureController extends ScalatraServlet with ScalateSupport with JacksonJsonSupport {
+trait QuerySignatureControllerComponent {
   this: QuerySignatureProviderComponent =>
+  val querySignatureController = new QuerySignatureController
 
-  protected implicit lazy val jsonFormats: Formats = DefaultFormats
+  class QuerySignatureController extends ScalatraServlet with ScalateSupport with JacksonJsonSupport {
 
-  /**
-   * retrieve all query signatures
-   */
-  get("/") {
-    contentType = formats("json")
+    protected implicit lazy val jsonFormats: Formats = DefaultFormats
 
-    Ok(querySignatureProvider.findAll())
-  }
+    /**
+     * retrieve all query signatures
+     */
+    get("/") {
+      contentType = formats("json")
 
-  /**
-   * retrieve a specific query signature by name
-   */
-  get("/id/:name") {
-    contentType = formats("json")
-    val sigName = params("name")
+      Ok(querySignatureProvider.findAll())
+    }
 
-    querySignatureProvider.find(sigName) match {
-      case Some(sig) => Ok(sig)
-      case None => NotFound(s"Could not find signature with the name $sigName")
+    /**
+     * retrieve a specific query signature by name
+     */
+    get("/id/:name") {
+      contentType = formats("json")
+      val sigName = params("name")
+
+      querySignatureProvider.find(sigName) match {
+        case Some(sig) => Ok(sig)
+        case None => NotFound(s"Could not find signature with the name $sigName")
+      }
     }
   }
-}
 
+}

@@ -4,16 +4,20 @@ import org.scalatra.ScalatraServlet
 import org.scalatra.scalate.ScalateSupport
 import org.json4s.{DefaultFormats, Formats}
 
-class MainController extends ScalatraServlet with ScalateSupport {
-  protected implicit lazy val jsonFormats: Formats = DefaultFormats
+trait MainControllerComponent {
+  val mainController = new MainController
 
-  /**
-   * retrieve main index
-   */
-  get("/") {
-    contentType = "text/html"
-    ssp("index")
+  class MainController extends ScalatraServlet with ScalateSupport {
+    protected implicit lazy val jsonFormats: Formats = DefaultFormats
+
+    /**
+     * retrieve main index
+     */
+    get("/") {
+      contentType = "text/html"
+      ssp("index")
+    }
+
   }
 
 }
-
