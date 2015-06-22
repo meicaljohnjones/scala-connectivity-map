@@ -10,7 +10,7 @@
             <h1><em>Gene Expression</em> Connectivity Map</h1>
 
             <p>Query Signatures</p>
-            <class="row">
+            <div class="row">
                 <div class="col-md-6"><p id="query-signature-dropdown"></p></div>
                 <div class="col-md-6"><p>Edit the signature here (possibly?)</p></div>
             </div>
