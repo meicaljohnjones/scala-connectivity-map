@@ -1,6 +1,20 @@
+<!DOCTYPE html>
+
 <html>
+    <head>
+        <link rel="stylesheet" href="/webjars/bootstrap/3.3.5/css/bootstrap.css" />
+    </head>
     <body>
-        <h1>Connectivity Map</h1>
+
+        <div class="container">
+            <h1><em>Gene Expression</em> Connectivity Map</h1>
+
+            <p>Query Signatures</p>
+            <class="row">
+                <div class="col-md-6"><p id="query-signature-dropdown"></p></div>
+                <div class="col-md-6"><p>Edit the signature here (possibly?)</p></div>
+            </div>
+        </div>
 
         <script type="text/javascript">
         var xmlHttpRequest = new XMLHttpRequest();
@@ -19,7 +33,9 @@
                 opt.appendChild(document.createTextNode(querysignatures[i].name));
                 selectBox.appendChild(opt)
             }
-            document.body.appendChild(selectBox);
+            selectBox.className = "form-control"
+
+            document.getElementById("query-signature-dropdown").appendChild(selectBox);
         }
         </script>
     </body>
