@@ -20,5 +20,7 @@ lazy val root = (project in file(".")).
     libraryDependencies += "org.json4s"   %% "json4s-jackson" % "3.3.0.RC1",
     libraryDependencies += "org.webjars" % "webjars-servlet-2.x" % "1.1",
     libraryDependencies += "org.webjars" % "bootstrap" % "3.3.5",
-    libraryDependencies += "org.webjars" % "jquery" % "2.1.4"
+    libraryDependencies += "org.webjars" % "jquery" % "2.1.4",
+    /* logging */
+    libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.1.1" % "runtime"
   )

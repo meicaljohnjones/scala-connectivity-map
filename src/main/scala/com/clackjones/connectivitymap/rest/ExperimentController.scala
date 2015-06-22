@@ -5,7 +5,7 @@ import org.scalatra.scalate.ScalateSupport
 import org.scalatra.{NotFound, Ok, ScalatraServlet}
 
 // JSON-related libraries
-import org.json4s.{DefaultFormats, Formats}
+import org.json4s.{MappingException, DefaultFormats, Formats}
 
 // JSON handling support from Scalatra
 import org.scalatra.json._
@@ -40,12 +40,14 @@ trait ExperimentControllerComponent {
      * Add new experiment
      */
     post("/") {
-      val experiment = parsedBody.extract[Experiment]
-      val experimentWithId = experimentProvider.add(experiment)
+      try {
+        val experiment = parsedBody.extract[Experiment]
+        val experimentWithId = experimentProvider.add(experiment)
+        experimentRunner.runExperimentUnorderedConnectionScore(experimentWithId)
+      } catch {
+        case jsonMapping: MappingException => "Couldn't parse json object!"
+      }
 
-      experimentRunner.runExperimentUnorderedConnectionScore(experimentWithId)
-
-      experimentWithId
     }
   }
 }

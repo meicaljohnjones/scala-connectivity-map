@@ -19,6 +19,25 @@
                     .text(signature.name));
             });
         }
+
+        /* submit experiment to REST */
+        $("#experiment-form").on( "submit", function( event ) {
+            experiment = {};
+
+            experiment["id"] = -1;
+            experiment["querySignatureId"] = "Estrogen";
+            experiment["randomSignatureCount"] = 30000;
+            $.ajax({
+                url: '/experiment',
+                type: 'POST',
+                contentType: "text/javascript",
+                data: JSON.stringify(experiment),
+                dataType: 'json',
+                success: function(result){ console.log(result) }
+            });
+
+            event.preventDefault();
+        });
     });
 
 </script>
@@ -33,8 +52,8 @@
 <body>
 
     <div class="container">
-    <form>
-        <h1><em>Gene Expression</em> Connectivity Map</h1>
+    <form id="experiment-form">
+        <h1><em>Gene Expressioqn</em> Connectivity Map</h1>
 
         <h3><em>1</em> Choose a Query Signatures</h3>
         <div class="row">
