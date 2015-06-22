@@ -3,17 +3,34 @@
 <html>
     <head>
         <link rel="stylesheet" href="/webjars/bootstrap/3.3.5/css/bootstrap.css" />
+        <style type="text/css">
+            .top-buffer { margin-top:20px; }
+        </style>
     </head>
     <body>
 
         <div class="container">
-            <h1><em>Gene Expression</em> Connectivity Map</h1>
+            <form>
+                <h1><em>Gene Expression</em> Connectivity Map</h1>
 
-            <p>Query Signatures</p>
-            <div class="row">
-                <div class="col-md-6"><p id="query-signature-dropdown"></p></div>
-                <div class="col-md-6"><p>Edit the signature here (possibly?)</p></div>
-            </div>
+                <h3><em>1</em> Choose a Query Signatures</h3>
+                <div class="row">
+                    <div class="col-md-6"><p>Edit the signature here (possibly?)</p></div>
+                    <div class="col-md-6">
+                        <select name="querySignatureId" id="query-signature-dropdown" class="form-control"></select>
+                    </div>
+                </div>
+
+                <h3><em>2</em> Choose a number of random signatures generated for calculating p-values</h3>
+                <div class="row">
+                    <div class="col-md-6"></div>
+                    <div class="col-md-6"><input name="randomSignatureCount" type="number" class="form-control" value="30000" /></div>
+                </div>
+                <div class="row top-buffer">
+                    <div class="col-md-6"></div>
+                    <div class="col-md-6"><button type="submit" class="btn btn-primary">Submit</button></div>
+                </div>
+            </form>
         </div>
 
         <script type="text/javascript">
@@ -23,19 +40,16 @@
                 printQueryStringNames(JSON.parse(xmlHttpRequest.responseText));
         }
 
-        xmlHttpRequest.open("GET", "http://localhost:8080/querysignature", false);
+        xmlHttpRequest.open("GET", "http://localhost:8080/querysignature", true);
         xmlHttpRequest.send();
 
         function printQueryStringNames(querysignatures) {
-            var selectBox = document.createElement("select");
+            var selectBox = document.getElementById("query-signature-dropdown")
             for (var i = 0; i < querysignatures.length; ++i) {
                 var opt = document.createElement("option");
                 opt.appendChild(document.createTextNode(querysignatures[i].name));
                 selectBox.appendChild(opt)
             }
-            selectBox.className = "form-control"
-
-            document.getElementById("query-signature-dropdown").appendChild(selectBox);
         }
         </script>
     </body>
