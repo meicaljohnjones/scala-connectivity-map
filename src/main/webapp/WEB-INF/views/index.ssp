@@ -25,8 +25,8 @@
             experiment = {};
 
             experiment["id"] = -1;
-            experiment["querySignatureId"] = "Estrogen";
-            experiment["randomSignatureCount"] = 30000;
+            experiment["querySignatureId"] = $("#query-signature-dropdown").val();
+            experiment["randomSignatureCount"] = parseInt($("#random-signature-count").val());
             $.ajax({
                 url: '/experiment',
                 type: 'POST',
@@ -53,7 +53,7 @@
 
     <div class="container">
     <form id="experiment-form">
-        <h1><em>Gene Expressioqn</em> Connectivity Map</h1>
+        <h1><em>Gene Expression</em> Connectivity Map</h1>
 
         <h3><em>1</em> Choose a Query Signatures</h3>
         <div class="row">
@@ -66,13 +66,13 @@
         <h3><em>2</em> Choose a number of random signatures generated for calculating p-values</h3>
         <div class="row">
         <div class="col-md-6"></div>
-        <div class="col-md-6"><input name="randomSignatureCount" type="number" class="form-control" value="30000" /></div>
+        <div class="col-md-6"><input name="randomSignatureCount" id="random-signature-count" type="number" class="form-control" value="30000" /></div>
         </div>
         <div class="row top-buffer">
             <div class="col-md-6"></div>
             <div class="col-md-6"><button type="submit" class="btn btn-primary">Submit</button></div>
         </div>
-        </form>
+    </form>
     </div>
 
 

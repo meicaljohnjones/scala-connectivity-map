@@ -44,6 +44,8 @@ trait ExperimentControllerComponent {
         val experiment = parsedBody.extract[Experiment]
         val experimentWithId = experimentProvider.add(experiment)
         experimentRunner.runExperimentUnorderedConnectionScore(experimentWithId)
+
+        Ok(experimentWithId)
       } catch {
         case jsonMapping: MappingException => "Couldn't parse json object!"
       }
