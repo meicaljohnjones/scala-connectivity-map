@@ -38,6 +38,46 @@
 
             event.preventDefault();
         });
+
+        /* poll server for results */
+        function retrieveResults() {
+            $.get("/result", function(data) {
+            if (data.length > 0) {
+                /* put results in a table */
+                populateResultsTable(data)
+            }
+
+                setTimeout(retrieveResults,5000);
+            });
+        };
+        retrieveResults();
+
+        function populateResultsTable(data) {
+            $("#results").empty();
+
+            $.each(data, function(id, value) {
+                $("#results").append('<h4>Result '+(value["experimentId"]+1)+'</h4>');
+
+                var table = $('<table class="table table-bordered" />');
+                var tableHeader = $("<tr />");
+                tableHeader.append('<th>ReferenceSet Name</th>');
+                tableHeader.append('<th>Connection Score</th>');
+                tableHeader.append('<th>P value</th>');
+                tableHeader.append('<th>Set size</th>');
+                table.append(tableHeader);
+
+                $.each(value["scores"], function(score) {
+                    var result = $(this)[0];
+                    var row = $('<tr />');
+                    row.append($('<td>'+result.referenceSetName+'</td>'));
+                    row.append($('<td>'+result.connectionScore+'</td>'));
+                    row.append($('<td>'+result.pValue+'</td>'));
+                    row.append($('<td>'+result.setSize+'</td>'));
+                    table.append(row);
+                });
+                $("#results").append(table);
+            });
+        }
     });
 
 </script>
@@ -72,7 +112,10 @@
             <div class="col-md-6"></div>
             <div class="col-md-6"><button type="submit" class="btn btn-primary">Submit</button></div>
         </div>
+
     </form>
+        <h2>Results</h2>
+        <div id="results"></div>
     </div>
 
 
