@@ -14,7 +14,19 @@ trait QuerySignatureProviderComponent {
   }
 }
 
-case class QuerySignature(val name: String, val geneUpDown : Map[String, Int])
+case class QuerySignature(val name: String, val geneUpDown : Map[String, Int]) {
+
+  /**
+   *
+   * @return true if ordered, false if unordered
+   */
+  def isOrderedSignature : Boolean = {
+    geneUpDown.values find (regulationMagnitude => regulationMagnitude.abs > 1) match {
+      case Some(x) => true
+      case None => false
+    }
+  }
+}
 
 trait FileBasedQuerySignatureProviderComponent extends QuerySignatureProviderComponent
     with QuerySignatureFileLoaderComponent {
