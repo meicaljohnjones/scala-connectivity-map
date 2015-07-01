@@ -5,6 +5,13 @@ import com.clackjones.connectivitymap.querysignature.RandomSignatureGeneratorCom
 import com.clackjones.connectivitymap.cmap.ConnectivityMapModule
 import com.clackjones.connectivitymap.referenceprofile.ReferenceSetLoaderComponent
 
+/**
+ * Implementation note:
+ *
+ * If the QuerySignature for this experiment is ordered then ensure that
+ * the ordered connectivity strength is calculated, likewise, if the QuerySignature
+ * for this experiment is unordered, the connectivity strength calculated should be unordered.
+ */
 trait ExperimentRunnerComponent {
   type ConnectivityMapReferenceSet = com.clackjones.connectivitymap.referenceprofile.ReferenceSet
   type ConnectivityMapReferenceProfile = com.clackjones.connectivitymap.referenceprofile.ReferenceProfile
@@ -20,7 +27,7 @@ trait ExperimentRunnerComponent {
 
 /**
  * This implementation also takes the Experiment and adds
- * it to the ExperimentResultProvider when the ExperimentResult is created
+ * it to the ExperimentResultProvider when the ExperimentResult is created.
  */
 trait DefaultExperimentRunnerComponent extends ExperimentRunnerComponent {
   this: RandomSignatureGeneratorComponent with ConnectivityMapModule
@@ -56,8 +63,11 @@ trait DefaultExperimentRunnerComponent extends ExperimentRunnerComponent {
         i => randomSignatureGenerator.generateRandomSignature(geneIds, sigLength)
       }).toSet
 
-      val maxConnectionsStrength : Float =
+      val maxConnectionsStrength : Float = if (serviceQuerySignature.get.isOrderedSignature) {
+        connectivityMap.maximumConnectionStrengthOrdered(geneIds.size, querySignature.size)
+      } else {
         connectivityMap.maximumConnectionStrengthUnordered(geneIds.size, querySignature.size)
+      }
 
       val results : Set[ConnectionScoreResult] = referenceSets map (refSet => {
         val avgFoldChangeProfile : ConnectivityMapReferenceProfile =
