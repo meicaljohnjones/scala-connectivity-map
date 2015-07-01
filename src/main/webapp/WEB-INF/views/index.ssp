@@ -8,7 +8,7 @@
 
 <script type="text/javascript">
     $(function() {
-        $.get("http://localhost:8080/querysignature", function( signatures ) {
+        $.get("/querysignature", function( signatures ) {
             populateQuerySignatureSelect( signatures );
         });
 
@@ -18,6 +18,7 @@
                     .append($("<option></option>")
                     .text(signature.name));
             });
+            previewQuerySignature();
         }
 
         /* submit experiment to REST */
@@ -52,6 +53,20 @@
         };
         retrieveResults();
 
+
+        function previewQuerySignature() {
+            var selectedQuerySigId = $( "#query-signature-dropdown option:selected").text();
+            $.get("/querysignature/id/" + selectedQuerySigId, function( signature ) {
+                var signature = JSON.stringify(signature.geneUpDown);
+                $ ( "#gene-sequence-view" ).val(signature);
+            });
+        };
+
+        /* show preview of QuerySignature when select QuerySignature from drop-down box */
+        $( "#query-signature-dropdown" ).on( "change", function() {
+            previewQuerySignature();
+        });
+
         function populateResultsTable(data) {
             $("#results").empty();
 
@@ -68,7 +83,7 @@
 
                 $.each(value["scores"], function(score) {
                     var result = $(this)[0];
-                    var row = $('<tr />');
+                    var row = $("<tr></tr>");
                     row.append($('<td>'+result.referenceSetName+'</td>'));
                     row.append($('<td>'+result.connectionScore+'</td>'));
                     row.append($('<td>'+result.pValue+'</td>'));
@@ -95,17 +110,20 @@
     <form id="experiment-form">
         <h1><em>Gene Expression</em> Connectivity Map</h1>
 
-        <h3><em>1</em> Choose a Query Signatures</h3>
         <div class="row">
-        <div class="col-md-6"><p>Edit the signature here (possibly?)</p></div>
-        <div class="col-md-6">
-            <select name="querySignatureId" id="query-signature-dropdown" class="form-control"></select>
-        </div>
+            <div class="col-md-6">
+        <h4><em>1</em> Choose a Query Signatures</h4>
+                <select name="querySignatureId" id="query-signature-dropdown" class="form-control"></select>
+            </div>
+            <div class="col-md-6">
+                <h4>Query Signature</h4>
+                <textarea class="form-control" id="gene-sequence-view">gene1 -> -1, gene2 -> 1</textarea>
+
+            </div>
         </div>
 
-        <h3><em>2</em> Choose a number of random signatures generated for calculating p-values</h3>
+        <h4><em>2</em> Choose a number of random signatures generated for calculating p-values</h4>
         <div class="row">
-        <div class="col-md-6"></div>
         <div class="col-md-6"><input name="randomSignatureCount" id="random-signature-count" type="number" class="form-control" value="30000" /></div>
         </div>
         <div class="row top-buffer">
