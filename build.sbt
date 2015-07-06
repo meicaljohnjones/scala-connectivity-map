@@ -22,5 +22,7 @@ lazy val root = (project in file(".")).
     libraryDependencies += "org.webjars" % "bootstrap" % "3.3.5",
     libraryDependencies += "org.webjars" % "jquery" % "2.1.4",
     /* logging */
-    libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.1.1" % "runtime"
+    libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.1.1" % "runtime",
+
+    libraryDependencies += "org.apache.spark" %% "spark-core" % "1.4.0"
   )

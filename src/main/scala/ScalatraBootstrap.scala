@@ -3,6 +3,7 @@ import com.clackjones.connectivitymap.querysignature.DefaultRandomSignatureGener
 import com.clackjones.connectivitymap.referenceprofile.{ReferenceProfileFileLoaderComponent, ReferenceSetCreatorByDrugDoseAndCellLineComponent, ReferenceSetFileLoaderComponent}
 import com.clackjones.connectivitymap.rest._
 import com.clackjones.connectivitymap.service._
+import com.clackjones.connectivitymap.spark.SparkContextComponent
 import org.scalatra.LifeCycle
 import javax.servlet.ServletContext
 
@@ -11,7 +12,8 @@ class ScalatraBootstrap extends LifeCycle
       with InMemoryExperimentProviderComponent
       with DefaultExperimentRunnerComponent with DefaultRandomSignatureGeneratorComponent
       with ReferenceSetFileLoaderComponent with ReferenceProfileFileLoaderComponent
-      with FileBasedQuerySignatureProviderComponent with InMemoryExperimentResultProviderComponent
+      with SparkQuerySignatureProviderComponent with InMemoryExperimentResultProviderComponent
+      with SparkContextComponent
       with ConnectivityMapModule with FileBasedReferenceSetProviderComponent
       with ReferenceSetCreatorByDrugDoseAndCellLineComponent
       with QuerySignatureControllerComponent with ExperimentControllerComponent
