@@ -20,8 +20,7 @@ trait ExperimentRunnerComponent {
   def experimentRunner : ExperimentRunner
 
   trait ExperimentRunner {
-    def runExperimentUnorderedConnectionScore(experiment: Experiment) : Option[ExperimentResult]
-    def runExperimentOrderedConnectionScore (experiment: Experiment) : Option[ExperimentResult]
+    def runExperiment(experiment: Experiment) : Option[ExperimentResult]
   }
 }
 
@@ -37,7 +36,7 @@ trait DefaultExperimentRunnerComponent extends ExperimentRunnerComponent {
 
   class DefaultExperimentRunner extends ExperimentRunner {
 
-    def runExperimentUnorderedConnectionScore(experiment: Experiment) : Option[ExperimentResult] = {
+    def runExperiment(experiment: Experiment) : Option[ExperimentResult] = {
 
       val refsets : Set[ReferenceSet] = referenceSetProvider.findAll().toSet
 
@@ -84,10 +83,5 @@ trait DefaultExperimentRunnerComponent extends ExperimentRunnerComponent {
 
       Some(experimentResult)
     }
-
-    def runExperimentOrderedConnectionScore (experiment: Experiment) : Option[ExperimentResult] = {
-      throw new UnsupportedOperationException("runExperimentOrderedConnectionScore not yet implemented")
-    }
-
   }
 }

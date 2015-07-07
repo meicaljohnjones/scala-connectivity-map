@@ -18,7 +18,7 @@ class ConnectivityMapServiceRunner {
     val experimentWithId = experimentProvider.add(experiment)
 
     println("Running experiment...")
-    experimentRunner.runExperimentUnorderedConnectionScore(experimentWithId)
+    experimentRunner.runExperiment(experimentWithId)
 
     val result : ExperimentResult = experimentResultProvider.find(experimentWithId.id).get
     result.scores foreach (println)

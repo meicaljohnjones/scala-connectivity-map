@@ -43,7 +43,7 @@ trait ExperimentControllerComponent {
       try {
         val experiment = parsedBody.extract[Experiment]
         val experimentWithId = experimentProvider.add(experiment)
-        experimentRunner.runExperimentUnorderedConnectionScore(experimentWithId)
+        experimentRunner.runExperiment(experimentWithId)
 
         Ok(experimentWithId)
       } catch {
