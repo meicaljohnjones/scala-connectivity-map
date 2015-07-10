@@ -10,7 +10,7 @@ import javax.servlet.ServletContext
 
 class ScalatraBootstrap extends LifeCycle
       with InMemoryExperimentProviderComponent
-      with DefaultExperimentRunnerComponent with DefaultRandomSignatureGeneratorComponent
+      with SparkExperimentRunnerComponent with DefaultRandomSignatureGeneratorComponent
       with ReferenceSetFileLoaderComponent with ReferenceProfileFileLoaderComponent
       with SparkQuerySignatureProviderComponent with InMemoryExperimentResultProviderComponent
       with SparkContextComponent
