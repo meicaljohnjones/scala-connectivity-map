@@ -109,10 +109,11 @@ trait SparkExperimentRunnerComponent extends ExperimentRunnerComponent {
 
       //      val refsets : Set[ReferenceSet] = referenceSetProvider.findAll().toSet
       logger.info("Starting to runExperiment...")
-      val stuff = SparkReferenceSetRDDCreator.getReferenceSets().collect()
+      val refsetsRDD = SparkReferenceSetRDDCreator.getReferenceSets()
+      val localRefsets = refsetsRDD.collect()
       logger.info("got stuff")
 
-      val referenceSets  : Set[ConnectivityMapReferenceSet]=  stuff.map(x => new ConnectivityMapReferenceSet(x._1, x._2)).toSet
+      val referenceSets  : Set[ConnectivityMapReferenceSet]=  localRefsets.map(x => new ConnectivityMapReferenceSet(x._1, x._2)).toSet
 
       logger.info(referenceSets.size+" reference sets created")
 
@@ -123,6 +124,7 @@ trait SparkExperimentRunnerComponent extends ExperimentRunnerComponent {
 
       val querySignature : QuerySignatureMap = serviceQuerySignature.get.geneUpDown
 
+      val sparkReferenceSetFirst = SparkReferenceSetRDDCreator.loadReferenceSetsRDD().first()
       val firstRefSet : ConnectivityMapReferenceSet = referenceSets.toIterator.next()
       val setProfiles : Set[ConnectivityMapReferenceProfile] = referenceSetLoader.retrieveAllProfiles(firstRefSet)
       val firstProfile : ConnectivityMapReferenceProfile = setProfiles.toIterator.next()
@@ -173,38 +175,47 @@ trait SparkExperimentRunnerComponent extends ExperimentRunnerComponent {
           (f.substring(0, f.lastIndexOf("_")), pathToRefset+"/"+f)
         })
 
-
       logger.info("FINISH filenames grouped by refset")
       refsetToProfileFiles.groupByKey()
-      // TODO
-      //        val sparkReferenceSets = refsetToProfileFiles mapValues (setFilenames => {
-      //          val profiles = RDD[Iterable[SparkReferenceProfile]] = setFilenames.map (f => {
-      //            val geneFoldChange: Map[String, Float] = sc.textFile(f).map(line => {
-      //              splitLine()
-      //            })
-      //          })
-      //        })
-
     }
 
-    private def splitLine(line: String): (String, Float) = {
-      val whitespacePattern = Pattern.compile("\\s+")
-      val splitLine = whitespacePattern.split(line.trim())
+    /**
+      * Creates an RDD with key-pair of ReferenceSet name as the key and
+      * then a collection of tuples which are the ReferenceProfiles containing
+      * the name of the ReferenceProfile as well as the mapping of gene probe IDs
+     * to their fold change.
+      */
+    def loadReferenceSetsRDD() = {
+      logger.info("retrieving file names")
+      val files = sc.wholeTextFiles("file://" + refsetsPath) // (filename, fileContents)
 
+      val refsetNameToProfileTuples = files map {
+        case (pathToFile, fileContents) => {
 
-      val geneName = splitLine(0)
-      val geneStrength = splitLine(1)
+          val extensionLength = ".ref.tab".length
 
-      try {
-        geneStrength.toFloat
-      } catch {
-        case n: NumberFormatException => {
-          logger.error(s"Couldn't parse $line to (String, Float) tuple")
-          System.exit(-1)
+          val profileName = pathToFile match {
+            case s if s.contains("/") => pathToFile.substring(s.lastIndexOf("/") + 1, s.length - extensionLength)
+            case _ => pathToFile
+          }
+          val refsetName = profileName.substring(0, profileName.lastIndexOf("_"))
+
+          val lines = fileContents.split("\n").drop(1)
+
+          val geneFoldChange = (lines map (line => {
+            val splitLine = line.split("\t")
+            (splitLine(0), splitLine(1).toFloat)
+          })).toMap
+
+          (refsetName, (profileName, geneFoldChange))
         }
       }
 
-      (geneName, geneStrength.toFloat)
+      refsetNameToProfileTuples.groupByKey()
     }
+
   }
+
+  case class SparkReferenceProfile(val name: String, val geneFoldChange: Map[String, Float])
+  case class SparkReferenceSet(val name: String, profiles : Iterable[SparkReferenceProfile])
 }
