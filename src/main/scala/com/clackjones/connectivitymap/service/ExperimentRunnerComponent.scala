@@ -184,22 +184,6 @@ trait SparkExperimentRunnerComponent extends ExperimentRunnerComponent {
     private val refsetsPath = new File(getClass().getResource(config("reffileLocation")).toURI()).getAbsolutePath()
     val hashPartitioner = new HashPartitioner(100)
 
-
-    def getReferenceSets(): RDD[(String, Iterable[String])] = {
-      logger.info("retrieving file names")
-      val filesNames: RDD[String] = sc.parallelize(new File(refsetsPath).list())
-
-      val pathToRefset = refsetsPath
-
-      val refsetToProfileFiles: RDD[(String, String)] =
-        filesNames.map(f => {
-          (f.substring(0, f.lastIndexOf("_")), pathToRefset+"/"+f)
-        })
-
-      logger.info("FINISH filenames grouped by refset")
-      refsetToProfileFiles.groupByKey()
-    }
-
     /**
       * Creates an RDD with key-pair of ReferenceSet name as the key and
       * then a collection of tuples which are the ReferenceProfiles containing
