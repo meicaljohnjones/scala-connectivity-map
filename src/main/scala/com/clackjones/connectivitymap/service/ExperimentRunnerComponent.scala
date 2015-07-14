@@ -9,6 +9,7 @@ import com.clackjones.connectivitymap.cmap.ConnectivityMapModule
 import com.clackjones.connectivitymap.referenceprofile.ReferenceSetLoaderComponent
 import com.clackjones.connectivitymap.spark.SparkContextComponent
 import org.apache.spark.rdd.RDD
+import org.apache.spark.HashPartitioner
 import org.slf4j.LoggerFactory
 
 /**
@@ -141,6 +142,8 @@ trait SparkExperimentRunnerComponent extends ExperimentRunnerComponent {
         connectivityMap.maximumConnectionStrengthUnordered(geneIds.size, querySignature.size)
       }
 
+      val querySigBroadcast = sc.broadcast(querySignature)
+
       logger.info("Calculating results...")
       val results = referenceSetsRDD map (refSet => {
         val refSetName = refSet._1
@@ -154,7 +157,7 @@ trait SparkExperimentRunnerComponent extends ExperimentRunnerComponent {
         })).toMap
 
         // TODO - use foldLeft instead of sum
-        val connectionStrength = (querySignature map { case (geneId, reg) => {
+        val connectionStrength = (querySigBroadcast.value map { case (geneId, reg) => {
           val foldChange = avgFoldChange(geneId)
           foldChange * reg
         }}).sum
@@ -179,6 +182,7 @@ trait SparkExperimentRunnerComponent extends ExperimentRunnerComponent {
   object SparkReferenceSetRDDCreator {
     val logger = LoggerFactory.getLogger(getClass())
     private val refsetsPath = new File(getClass().getResource(config("reffileLocation")).toURI()).getAbsolutePath()
+    val hashPartitioner = new HashPartitioner(100)
 
 
     def getReferenceSets(): RDD[(String, Iterable[String])] = {
@@ -228,7 +232,7 @@ trait SparkExperimentRunnerComponent extends ExperimentRunnerComponent {
         }
       }
 
-      refsetNameToProfileTuples.groupByKey()
+      refsetNameToProfileTuples.groupByKey().partitionBy(hashPartitioner)
     }
 
   }
