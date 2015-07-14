@@ -109,32 +109,31 @@ trait SparkExperimentRunnerComponent extends ExperimentRunnerComponent {
 
       //      val refsets : Set[ReferenceSet] = referenceSetProvider.findAll().toSet
       logger.info("Starting to runExperiment...")
-      val refsetsRDD = SparkReferenceSetRDDCreator.getReferenceSets()
-      val localRefsets = refsetsRDD.collect()
       logger.info("got stuff")
 
-      val referenceSets  : Set[ConnectivityMapReferenceSet]=  localRefsets.map(x => new ConnectivityMapReferenceSet(x._1, x._2)).toSet
-
-      logger.info(referenceSets.size+" reference sets created")
-
+      logger.info("Loading query signatures...")
       val serviceQuerySignature : Option[QuerySignature] = querySignatureProvider.find(experiment.querySignatureId)
       if (!serviceQuerySignature.isDefined) {
+        logger.warn ("Couldn't find the query signature you wanted")
         return None
       }
 
+
       val querySignature : QuerySignatureMap = serviceQuerySignature.get.geneUpDown
 
-      val sparkReferenceSetFirst = SparkReferenceSetRDDCreator.loadReferenceSetsRDD().first()
-      val firstRefSet : ConnectivityMapReferenceSet = referenceSets.toIterator.next()
-      val setProfiles : Set[ConnectivityMapReferenceProfile] = referenceSetLoader.retrieveAllProfiles(firstRefSet)
-      val firstProfile : ConnectivityMapReferenceProfile = setProfiles.toIterator.next()
+      val referenceSetsRDD = SparkReferenceSetRDDCreator.loadReferenceSetsRDD()
 
-      val geneIds : Array[String] = firstProfile.geneFoldChange.keys.toArray
+      val firstRefSet = referenceSetsRDD.first()
+      val firstProfile = firstRefSet._2.head
+
+      val geneIds : Array[String] = firstProfile._2.keys.toArray
       val sigLength : Int = querySignature.size
 
+      logger.info("Calculating random signatures...")
       val randomSignatures : Set[QuerySignatureMap]  = (List.range(1, experiment.randomSignatureCount) map {
         i => randomSignatureGenerator.generateRandomSignature(geneIds, sigLength)
       }).toSet
+      logger.info("Finished calculating random signatures...")
 
       val maxConnectionsStrength : Float = if (serviceQuerySignature.get.isOrderedSignature) {
         connectivityMap.maximumConnectionStrengthOrdered(geneIds.size, querySignature.size)
@@ -142,20 +141,38 @@ trait SparkExperimentRunnerComponent extends ExperimentRunnerComponent {
         connectivityMap.maximumConnectionStrengthUnordered(geneIds.size, querySignature.size)
       }
 
-      val results : Set[ConnectionScoreResult] = referenceSets map (refSet => {
-        val avgFoldChangeProfile : ConnectivityMapReferenceProfile =
-          referenceSetLoader.retrieveAverageReference(refSet)
+      logger.info("Calculating results...")
+      val results = referenceSetsRDD map (refSet => {
+        val refSetName = refSet._1
+        val setProfiles = refSet._2
+        val profileCount = setProfiles.size
+        val geneFoldChanges = setProfiles.toMap.values
 
-        val c : ConnectivityMapConnectionScoreResult = connectivityMap.calculateConnectionScore(avgFoldChangeProfile, querySignature,
-          randomSignatures, maxConnectionsStrength, refSet.filenames.size)
+        val avgFoldChange : Map[String, Float] = (geneIds map (gID => {
+          val sumFoldChange = geneFoldChanges.foldLeft(0f)(_ + _(gID))
+          (gID, sumFoldChange / profileCount)
+        })).toMap
 
-        ConnectionScoreResult(c.referenceSetName, c.connectionScore, c.pValue, c.setSize)
+        // TODO - use foldLeft instead of sum
+        val connectionStrength = (querySignature map { case (geneId, reg) => {
+          val foldChange = avgFoldChange(geneId)
+          foldChange * reg
+        }}).sum
+
+        val connectionScore = connectionStrength / maxConnectionsStrength
+
+        connectionScore
+
+        //TODO calculate random scores
+        //TODO use broadcast variables for QuerySignature and random scores
       })
 
-      val experimentResult = ExperimentResult(experiment.id, results)
-      experimentResultProvider.add(experimentResult)
+      // TODO return result in correct case class
+      //TODO add partitionBy function/class to make sure refsets are partitioned by node
+      val result = results.collect()
+      result
 
-      Some(experimentResult)
+      None
     }
   }
 
