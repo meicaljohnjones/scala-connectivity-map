@@ -125,9 +125,7 @@ trait SparkExperimentRunnerComponent extends ExperimentRunnerComponent {
       val referenceSetsRDD = SparkReferenceSetRDDCreator.loadReferenceSetsRDD()
 
       val firstRefSet = referenceSetsRDD.first()
-      val firstProfile = firstRefSet._2.head
-
-      val geneIds : Array[String] = firstProfile._2.keys.toArray
+      val geneIds: Array[String] = firstRefSet._2.keys.toArray
       val sigLength : Int = querySignature.size
 
       logger.info("Calculating random signatures...")
@@ -146,15 +144,7 @@ trait SparkExperimentRunnerComponent extends ExperimentRunnerComponent {
 
       logger.info("Calculating results...")
       val results = referenceSetsRDD map (refSet => {
-        val refSetName = refSet._1
-        val setProfiles = refSet._2
-        val profileCount = setProfiles.size
-        val geneFoldChanges = setProfiles.toMap.values
-
-        val avgFoldChange : Map[String, Float] = (geneIds map (gID => {
-          val sumFoldChange = geneFoldChanges.foldLeft(0f)(_ + _(gID))
-          (gID, sumFoldChange / profileCount)
-        })).toMap
+        val avgFoldChange = refSet._2
 
         // TODO - use foldLeft instead of sum
         val connectionStrength = (querySigBroadcast.value map { case (geneId, reg) => {
@@ -212,11 +202,13 @@ trait SparkExperimentRunnerComponent extends ExperimentRunnerComponent {
             (splitLine(0), splitLine(1).toFloat)
           })).toMap
 
-          (refsetName, (profileName, geneFoldChange))
+          (refsetName, geneFoldChange)
         }
       }
 
-      refsetNameToProfileTuples.groupByKey().partitionBy(hashPartitioner)
+      refsetNameToProfileTuples.reduceByKey((foldChange1, foldChange2) => {
+        foldChange1 ++ foldChange2.map{ case (k,v) => k -> ((v + foldChange1.getOrElse(k,v)) / 2f) }
+      }).partitionBy(hashPartitioner)
     }
 
   }
