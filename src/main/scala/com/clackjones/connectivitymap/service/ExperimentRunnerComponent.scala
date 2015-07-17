@@ -129,6 +129,7 @@ trait SparkExperimentRunnerComponent extends ExperimentRunnerComponent {
       val sigLength : Int = querySignature.size
 
       logger.info("Calculating random signatures...")
+//      TODO randomSignatures using Spark RDD
       val randomSignatures : Set[QuerySignatureMap]  = (List.range(1, experiment.randomSignatureCount) map {
         i => randomSignatureGenerator.generateRandomSignature(geneIds, sigLength)
       }).toSet
@@ -174,22 +175,6 @@ trait SparkExperimentRunnerComponent extends ExperimentRunnerComponent {
     private val refsetsPath = new File(getClass().getResource(config("reffileLocation")).toURI()).getAbsolutePath()
     val hashPartitioner = new HashPartitioner(4)
 
-
-    def getRefsetNames(): Set[String] = {
-      def getListOfFiles(dir: String): Set[String] = {
-        val d = new File(dir)
-        if (d.exists && d.isDirectory) {
-          d.listFiles.filter(_.isFile).map(f => f.getAbsolutePath()).toSet
-        } else {
-          Set[String]()
-        }
-      }
-
-      getListOfFiles(refsetsPath) map {
-        filename => filename.substring(filename.lastIndexOf("/") + 1, filename.lastIndexOf("_"))
-      }
-    }
-
     /**
       * Creates an RDD with key-pair of ReferenceSet name as the key and
       * then a collection of tuples which are the ReferenceProfiles containing
@@ -197,23 +182,13 @@ trait SparkExperimentRunnerComponent extends ExperimentRunnerComponent {
      * to their fold change.
       */
     def loadReferenceSetsRDD() = {
-      logger.info("retrieving file names")
-      val refsets = getRefsetNames().toList
-      val refsetsRDD = sc.parallelize(refsets)
-
-      val refsetsFileTuples : List[RDD[(String, Iterable[String])]] = refsets map (refsetName => {
-        val pairs = sc.wholeTextFiles("file://" + refsetsPath + "/" + refsetName + "*") map {
-          case (path, fileContents) => (refsetName, fileContents)
-        }
-
-        pairs.groupByKey()
-      })
-
-      val refsetsFileRDD = sc.union(refsetsFileTuples)
+      val refsetsFileRDD = sc.wholeTextFiles("file://" + refsetsPath + "/*", minPartitions = 4).groupBy {
+        case (filepath, contents) => filepath.substring(filepath.lastIndexOf("/") + 1, filepath.lastIndexOf("_"))
+      }
 
       val refsetNameToProfileTuples = refsetsFileRDD map {
         case (refsetName, profiles) => {
-          val geneFoldChanges = profiles flatMap { fileContents => {
+          val geneFoldChanges = profiles flatMap { case (filename, fileContents) => {
             val lines = fileContents.split("\n").drop(1)
 
             (lines map (line => {
@@ -222,8 +197,8 @@ trait SparkExperimentRunnerComponent extends ExperimentRunnerComponent {
             }))
           }}
 
-          // TODO - problem with this - combine keys to get average geneFoldChange
-          val avgGeneFoldChange = geneFoldChanges.groupBy(_._1) map(l => (l._1, l._2.map(_._2).reduce( (_+_) /2f )))
+          /** find the average gene fold change of all the profiles **/
+          val avgGeneFoldChange = geneFoldChanges.groupBy(_._1) map (l => (l._1, (l._2 map (m => m._2) reduce (_ + _)) / 2f))
 
           (refsetName, avgGeneFoldChange)
 
