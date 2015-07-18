@@ -130,9 +130,9 @@ trait SparkExperimentRunnerComponent extends ExperimentRunnerComponent {
 
       logger.info("Calculating random signatures...")
 //      TODO randomSignatures using Spark RDD
-      val randomSignatures : Set[QuerySignatureMap]  = (List.range(1, experiment.randomSignatureCount) map {
-        i => randomSignatureGenerator.generateRandomSignature(geneIds, sigLength)
-      }).toSet
+//      val randomSignatures : Set[QuerySignatureMap]  = (List.range(1, experiment.randomSignatureCount) map {
+//        i => randomSignatureGenerator.generateRandomSignature(geneIds, sigLength)
+//      }).toSet
       logger.info("Finished calculating random signatures...")
 
       val maxConnectionsStrength : Float = if (serviceQuerySignature.get.isOrderedSignature) {
@@ -155,18 +155,22 @@ trait SparkExperimentRunnerComponent extends ExperimentRunnerComponent {
 
         val connectionScore = connectionStrength / maxConnectionsStrength
 
-        connectionScore
+        (refSet._1, connectionScore)
 
         //TODO calculate random scores
         //TODO use broadcast variables for QuerySignature and random scores
       })
 
-      // TODO return result in correct case class
-      //TODO add partitionBy function/class to make sure refsets are partitioned by node
-      val result = results.collect()
-      result
 
-      None
+      // TODO add random score and set size
+      val result = (results map {
+        case (refsetName, connectionScore) => ConnectionScoreResult(refsetName, connectionScore, 0f, 0)
+      }).collect()
+
+      val experimentResult = ExperimentResult(experiment.id, result)
+      experimentResultProvider.add(experimentResult)
+
+      Some(experimentResult)
     }
   }
 
@@ -209,7 +213,4 @@ trait SparkExperimentRunnerComponent extends ExperimentRunnerComponent {
     }
 
   }
-
-  case class SparkReferenceProfile(val name: String, val geneFoldChange: Map[String, Float])
-  case class SparkReferenceSet(val name: String, profiles : Iterable[SparkReferenceProfile])
 }
