@@ -132,22 +132,27 @@ trait SparkExperimentRunnerComponent extends ExperimentRunnerComponent {
 
       val geneIdsBroadcast = sc.broadcast(geneIds.toList)
 
-      val randomGeneIds : RDD[List[String]] = {
+      val randomQuerySignaturesRDD : RDD[List[(String, Float)]] = {
         sc.parallelize(List.range(0, experiment.randomSignatureCount, 1)) mapPartitionsWithIndex { case (partition, indices) => {
           val r = new Random()
           val _geneIds = geneIdsBroadcast.value
 
-          val randomGeneIds = indices map (i => {
+          val randomQuerySigs = indices map (i => {
             val randomGeneIds = r.shuffle(_geneIds)
 
-            randomGeneIds.zipWithIndex.filter{case (geneId, idx) => idx < sigLength }.map{ case (geneId, idx) => geneId}
+            val geneIds = randomGeneIds.zipWithIndex.filter{case (geneId, idx) => idx < sigLength }.map{ case (geneId, idx) => geneId}
+            val foldChange = Array.fill(sigLength)(if (r.nextInt(2) == 0) -1f else 1f)
+
+            geneIds.zip(foldChange)
           })
 
-          randomGeneIds
+          randomQuerySigs
         }}
       }
 
-      val collectRandomGeneIds = randomGeneIds.collect()
+      val randomQuerySignatures = randomQuerySignaturesRDD.collect()
+
+      // TODO broadcast random QuerySignatures
 
       logger.info("Finished calculating random signatures...")
 
@@ -173,8 +178,8 @@ trait SparkExperimentRunnerComponent extends ExperimentRunnerComponent {
 
         (refSet._1, connectionScore)
 
-        //TODO calculate random scores
-        //TODO use broadcast variables for QuerySignature and random scores
+        //TODO calculate random scores using randomQuerySignatures above
+        //TODO use broadcast variables for QuerySignature and random scores - need to calculate this further up the method
       })
 
 
