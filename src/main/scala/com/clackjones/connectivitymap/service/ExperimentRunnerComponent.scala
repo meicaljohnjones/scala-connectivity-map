@@ -1,16 +1,17 @@
 package com.clackjones.connectivitymap.service
 
 import java.io.File
-import java.util.regex.Pattern
 
 import com.clackjones.connectivitymap._
 import com.clackjones.connectivitymap.querysignature.RandomSignatureGeneratorComponent
 import com.clackjones.connectivitymap.cmap.ConnectivityMapModule
 import com.clackjones.connectivitymap.referenceprofile.ReferenceSetLoaderComponent
 import com.clackjones.connectivitymap.spark.SparkContextComponent
-import org.apache.spark.rdd.RDD
+
 import org.apache.spark.HashPartitioner
+import org.apache.spark.rdd.RDD
 import org.slf4j.LoggerFactory
+import scala.util.Random
 
 /**
  * Implementation note:
@@ -108,7 +109,6 @@ trait SparkExperimentRunnerComponent extends ExperimentRunnerComponent {
 
     def runExperiment(experiment: Experiment) : Option[ExperimentResult] = {
 
-      //      val refsets : Set[ReferenceSet] = referenceSetProvider.findAll().toSet
       logger.info("Starting to runExperiment...")
       logger.info("got stuff")
 
@@ -129,10 +129,26 @@ trait SparkExperimentRunnerComponent extends ExperimentRunnerComponent {
       val sigLength : Int = querySignature.size
 
       logger.info("Calculating random signatures...")
-//      TODO randomSignatures using Spark RDD
-//      val randomSignatures : Set[QuerySignatureMap]  = (List.range(1, experiment.randomSignatureCount) map {
-//        i => randomSignatureGenerator.generateRandomSignature(geneIds, sigLength)
-//      }).toSet
+
+      val geneIdsBroadcast = sc.broadcast(geneIds.toList)
+
+      val randomGeneIds : RDD[List[String]] = {
+        sc.parallelize(List.range(0, experiment.randomSignatureCount, 1)) mapPartitionsWithIndex { case (partition, indices) => {
+          val r = new Random()
+          val _geneIds = geneIdsBroadcast.value
+
+          val randomGeneIds = indices map (i => {
+            val randomGeneIds = r.shuffle(_geneIds)
+
+            randomGeneIds.zipWithIndex.filter{case (geneId, idx) => idx < sigLength }.map{ case (geneId, idx) => geneId}
+          })
+
+          randomGeneIds
+        }}
+      }
+
+      val collectRandomGeneIds = randomGeneIds.collect()
+
       logger.info("Finished calculating random signatures...")
 
       val maxConnectionsStrength : Float = if (serviceQuerySignature.get.isOrderedSignature) {
