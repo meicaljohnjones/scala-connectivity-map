@@ -150,7 +150,7 @@ trait SparkExperimentRunnerComponent extends ExperimentRunnerComponent {
         }}
       }
 
-      val randomQuerySignatures = randomQuerySignaturesRDD.collect()
+      val randomQuerySignatures = sc.broadcast(randomQuerySignaturesRDD.collect())
 
       // TODO broadcast random QuerySignatures
 
@@ -164,23 +164,27 @@ trait SparkExperimentRunnerComponent extends ExperimentRunnerComponent {
 
       val querySigBroadcast = sc.broadcast(querySignature)
 
+
+
       logger.info("Calculating results...")
-      val results = referenceSetsRDD map (refSet => {
-        val avgFoldChange = refSet._2
+      val results = referenceSetsRDD map { case (refSetName, avgFoldChange) => {
+        def calculateConnectionScore(querySignature: Map[String, Int],
+                                     referenceSignatureFoldChange: Map[String, Float])  = {
 
-        // TODO - use foldLeft instead of sum
-        val connectionStrength = (querySigBroadcast.value map { case (geneId, reg) => {
-          val foldChange = avgFoldChange(geneId)
-          foldChange * reg
-        }}).sum
+          val connectionStrength = querySigBroadcast.value.foldLeft(0f){
+            case (strength, (geneId, reg)) => strength + referenceSignatureFoldChange(geneId) * reg
+          }
 
-        val connectionScore = connectionStrength / maxConnectionsStrength
+          connectionStrength / maxConnectionsStrength
+        }
 
-        (refSet._1, connectionScore)
+        val connectionScore = calculateConnectionScore(querySigBroadcast.value, avgFoldChange) / maxConnectionsStrength
+
+        (refSetName, connectionScore)
 
         //TODO calculate random scores using randomQuerySignatures above
         //TODO use broadcast variables for QuerySignature and random scores - need to calculate this further up the method
-      })
+      }}
 
 
       // TODO add random score and set size
