@@ -26,3 +26,7 @@ lazy val root = (project in file(".")).
 
     libraryDependencies += "org.apache.spark" %% "spark-core" % "1.4.0"
   )
+
+
+mainClass in (Compile, run) := Some("com.clackjones.connectivitymap.JettyLauncher")
+mainClass in (Compile, packageBin) := Some("com.clackjones.connectivitymap.JettyLauncher")
