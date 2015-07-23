@@ -24,9 +24,22 @@ lazy val root = (project in file(".")).
     /* logging */
     libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.1.1" % "runtime",
 
-    libraryDependencies += "org.apache.spark" %% "spark-core" % "1.4.0"
+    libraryDependencies += "org.apache.spark" %% "spark-core" % "1.4.0" % "provided"
   )
 
+assemblyMergeStrategy in assembly := {
+  case PathList("org", "apache", "commons", xs @ _*) => MergeStrategy.first
+  case PathList("javax", "servlet", xs @ _*)         => MergeStrategy.first
+  case PathList("org", "slf4j", xs @ _*)         => MergeStrategy.first
+  case PathList("com", "google", "common", xs @ _*)         => MergeStrategy.first
+
+  case x =>
+    val oldStrategy = (assemblyMergeStrategy in assembly).value
+    oldStrategy(x)
+}
 
 mainClass in (Compile, run) := Some("com.clackjones.connectivitymap.JettyLauncher")
 mainClass in (Compile, packageBin) := Some("com.clackjones.connectivitymap.JettyLauncher")
+
+/* include "provided" library dependencies when do `sbt run` */
+run in Compile <<= Defaults.runTask(fullClasspath in Compile, mainClass in (Compile, run), runner in (Compile, run))
