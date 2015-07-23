@@ -21,7 +21,7 @@ trait FileBasedReferenceSetProviderComponent extends ReferenceSetProviderCompone
   val referenceSetProvider = new FileBasedReferenceSetProvider
 
   class FileBasedReferenceSetProvider extends ReferenceSetProvider {
-    val reffiles: File = new File(getClass().getResource(config("reffileLocation")).toURI())
+    val reffiles: File = new File(config("reffileLocation"))
 
     override def findAll(): Iterable[ReferenceSet] = {
       val pathToFiles = reffiles.getAbsolutePath()

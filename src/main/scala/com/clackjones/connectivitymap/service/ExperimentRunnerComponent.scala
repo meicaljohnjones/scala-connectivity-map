@@ -186,11 +186,12 @@ trait SparkExperimentRunnerComponent extends ExperimentRunnerComponent {
         //TODO use broadcast variables for QuerySignature and random scores - need to calculate this further up the method
       }}
 
+      val collectedResults = results.collect()
 
-      // TODO add random score and set size
-      val result = (results map {
-        case (refsetName, connectionScore) => ConnectionScoreResult(refsetName, connectionScore, 0f, 0)
-      }).collect()
+      val result = collectedResults map {
+        case (refsetName, connectionScore) => ConnectionScoreResult(refsetName,
+	     connectionScore, 0f, 0)
+      }
 
       val experimentResult = ExperimentResult(experiment.id, result)
       experimentResultProvider.add(experimentResult)
@@ -201,7 +202,7 @@ trait SparkExperimentRunnerComponent extends ExperimentRunnerComponent {
 
   object SparkReferenceSetRDDCreator {
     val logger = LoggerFactory.getLogger(getClass())
-    private val refsetsPath = new File(getClass().getResource(config("reffileLocation")).toURI()).getAbsolutePath()
+    private val refsetsPath = config("reffileLocation")
     val hashPartitioner = new HashPartitioner(4)
 
     /**

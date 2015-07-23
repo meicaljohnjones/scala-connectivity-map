@@ -40,7 +40,7 @@ trait FileBasedQuerySignatureProviderComponent extends QuerySignatureProviderCom
   def querySignatureProvider = new FileBasedQuerySignatureProvider
 
   class FileBasedQuerySignatureProvider extends QuerySignatureProvider {
-    val queries = new File(getClass().getResource(config("querySignatureLocation")).toURI()).getAbsolutePath()
+    val queries = config("querySignatureLocation")
 
     override def findAll() : Set[QuerySignature] = {
       val queriesDir = new File(queries)
@@ -74,7 +74,7 @@ trait SparkQuerySignatureProviderComponent extends QuerySignatureProviderCompone
   class SparkQuerySignatureProvider extends QuerySignatureProvider {
     val logger = LoggerFactory.getLogger(getClass())
 
-    val pathToQueries = new File(getClass().getResource(config("querySignatureLocation")).toURI()).getAbsolutePath()
+    val pathToQueries = config("querySignatureLocation")
     val queries : RDD[(String, String)] = sc.wholeTextFiles(pathToQueries+"/*.sig").map(pair => {
       val queryAbsolutePath = pair._1
       val startQuerySigName : Int = queryAbsolutePath.lastIndexOf("/") + 1
