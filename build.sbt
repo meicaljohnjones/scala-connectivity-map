@@ -38,6 +38,8 @@ assemblyMergeStrategy in assembly := {
     oldStrategy(x)
 }
 
+assemblyJarName in assembly := "spark-connectivity-map.jar"
+
 mainClass in (Compile, run) := Some("com.clackjones.connectivitymap.JettyLauncher")
 mainClass in (Compile, packageBin) := Some("com.clackjones.connectivitymap.JettyLauncher")
 
