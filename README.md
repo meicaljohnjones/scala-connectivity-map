@@ -6,6 +6,6 @@ How to run on a Spark standalone cluster:
 * `cd scala-connectivity-map`
 * `sbt assembly`
 * `cd target/scala-2.10/`
-* `$SPARK_HOME/bin/spark-submit spark://master-url:7077 scala-connectivity-map-assembly-0.1-SNAPSHOT.jar`
+* `$SPARK_HOME/bin/spark-submit spark://master-url:7077 scala-connectivity-map.jar`
 
 To access the web interface to Gene Expression Connectivity Map, visit <http://localhost:6789>
