@@ -152,8 +152,6 @@ trait SparkExperimentRunnerComponent extends ExperimentRunnerComponent {
 
       val randomQuerySignatures = sc.broadcast(randomQuerySignaturesRDD.collect())
 
-      // TODO broadcast random QuerySignatures
-
       logger.info("Finished calculating random signatures...")
 
       val maxConnectionsStrength : Float = if (serviceQuerySignature.get.isOrderedSignature) {
@@ -163,8 +161,6 @@ trait SparkExperimentRunnerComponent extends ExperimentRunnerComponent {
       }
 
       val querySigBroadcast = sc.broadcast(querySignature)
-
-
 
       logger.info("Calculating results...")
       val results = referenceSetsRDD map { case (refSetName, avgFoldChange) => {
@@ -178,19 +174,24 @@ trait SparkExperimentRunnerComponent extends ExperimentRunnerComponent {
           connectionStrength / maxConnectionsStrength
         }
 
-        val connectionScore = calculateConnectionScore(querySigBroadcast.value, avgFoldChange) / maxConnectionsStrength
+        val querySig = querySigBroadcast.value
+        val randomQuerySigs = randomQuerySignatures.value
+        val connectionScore = calculateConnectionScore(querySig, avgFoldChange) / maxConnectionsStrength
 
-        (refSetName, connectionScore)
+        val randomScores = randomQuerySigs map(r => calculateConnectionScore(querySig, r.toMap))
 
-        //TODO calculate random scores using randomQuerySignatures above
-        //TODO use broadcast variables for QuerySignature and random scores - need to calculate this further up the method
+        val pVal = randomScores.foldLeft(0f)((count, randScore) => {
+          if (randScore >= connectionScore) count + 1 else count
+        }) / randomQuerySigs.size
+
+        (refSetName, connectionScore, pVal)
       }}
 
       val collectedResults = results.collect()
 
       val result = collectedResults map {
-        case (refsetName, connectionScore) => ConnectionScoreResult(refsetName,
-	     connectionScore, 0f, 0)
+        case (refsetName, connectionScore, pVal) => ConnectionScoreResult(refsetName,
+	     connectionScore, pVal, 0)
       }
 
       val experimentResult = ExperimentResult(experiment.id, result)
