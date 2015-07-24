@@ -1,7 +1,11 @@
-# To Do
-* Implement in Apache Spark
-* `SparkContextComponent`
-    * Export configuration options to properties file
-    * Connect to standalone cluster instead of local multithreaded ("local[4]")
-* ~~`SparkQuerySignatureProviderComponent`~~
-* `SparkReferenceSetProviderComponent`
+# Gene Expression Connectivity Map for Apache Spark
+
+How to run on a scala node
+
+* clone this repository
+* `cd scala-connectivity-map`
+* `sbt assembly`
+* `cd target/scala-2.10/`
+* `$SPARK_HOME/bin/spark-submit spark://master-url:7077 scala-connectivity-map-assembly-0.1-SNAPSHOT.jar`
+
+To access the web interface to Gene Expression Connectivity Map, visit <http://localhost:6789>
