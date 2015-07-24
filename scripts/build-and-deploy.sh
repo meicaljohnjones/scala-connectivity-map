@@ -3,6 +3,7 @@
 PROJECT_HOME=~/workspace/scala-connectivity-map;
 SPARK_MASTER_URL="spark://kembrek-Inspiron-7720:7077";
 BUILT_ARTEFACT_NAME="spark-connectivity-map.jar"
+SPARK_EXECUTOR_MEMORY="4g"
 VERBOSE=true;
 STDOUT=/dev/stdout
 
@@ -14,7 +15,7 @@ if [[ "$VERBOSE" = false ]]; then
     STDOUT=/dev/null;
 fi
 
-cd $PROJECT_HOME || { echo "ERROR: '$PROJECT_HOME' does not exist. Please change the \$PROJECT_HOME variable in build-and-deploy.sh"; exit 1; };
+pushd $PROJECT_HOME || { echo "ERROR: '$PROJECT_HOME' does not exist. Please change the \$PROJECT_HOME variable in build-and-deploy.sh"; exit 1; };
 
 echo "Assembling your project with sbt assembly";
 sbt assembly > $STDOUT || { echo "ERROR: Assembly of script failed...exiting"; exit 1; };
@@ -27,4 +28,6 @@ echo "Restarting Spark instance";
 $SPARK_HOME/sbin/start-all.sh > $STDOUT || { echo "Failed to restart Apache Spark. Exiting..."; exit 1; };
 
 echo "Submitting JAR to spark";
-$SPARK_HOME/bin/spark-submit --master ${SPARK_MASTER_URL} ./target/scala-2.10/${BUILT_ARTEFACT_NAME} > $STDOUT || { echo "ERROR: Failed to submit $BUILT_ARTEFACT_NAME to Spark. Run this script in verbose mode for debugging purposes."; exit 1; };
+$SPARK_HOME/bin/spark-submit --master ${SPARK_MASTER_URL} --executor-memory $SPARK_EXECUTOR_MEMORY ./target/scala-2.10/${BUILT_ARTEFACT_NAME} > $STDOUT || { echo "ERROR: Failed to submit $BUILT_ARTEFACT_NAME to Spark. Run this script in verbose mode for debugging purposes."; exit 1; };
+
+popd;
