@@ -1,6 +1,6 @@
 # Gene Expression Connectivity Map for Apache Spark
 
-How to run on a scala node
+How to run on a Spark standalone cluster:
 
 * clone this repository
 * `cd scala-connectivity-map`
