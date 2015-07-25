@@ -4,7 +4,7 @@ import org.apache.spark.{SparkConf, SparkContext}
 
 trait SparkContextComponent {
   private val conf = new SparkConf()
-    .setAppName("Simple Application")
+    .setAppName("Gene Expression Connectivity Map")
   val sc : SparkContext =  new SparkContext(conf)
 
 }

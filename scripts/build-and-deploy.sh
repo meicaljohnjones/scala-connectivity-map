@@ -3,7 +3,7 @@
 PROJECT_HOME=~/workspace/scala-connectivity-map;
 SPARK_MASTER_URL="spark://kembrek-Inspiron-7720:7077";
 BUILT_ARTEFACT_NAME="spark-connectivity-map.jar"
-SPARK_EXECUTOR_MEMORY="4g"
+SPARK_EXECUTOR_MEMORY="2g"
 VERBOSE=true;
 STDOUT=/dev/stdout
 
