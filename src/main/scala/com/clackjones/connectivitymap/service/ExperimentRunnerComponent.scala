@@ -1,12 +1,14 @@
 package com.clackjones.connectivitymap.service
 
-import java.io.File
+import java.io.{DataOutput, DataInput}
 
 import com.clackjones.connectivitymap._
 import com.clackjones.connectivitymap.querysignature.RandomSignatureGeneratorComponent
 import com.clackjones.connectivitymap.cmap.ConnectivityMapModule
 import com.clackjones.connectivitymap.referenceprofile.ReferenceSetLoaderComponent
 import com.clackjones.connectivitymap.spark.SparkContextComponent
+import org.apache.hadoop.io.Writable
+import org.apache.hadoop.io.compress.GzipCodec
 
 import org.apache.spark.HashPartitioner
 import org.apache.spark.rdd.RDD
@@ -132,7 +134,7 @@ trait SparkExperimentRunnerComponent extends ExperimentRunnerComponent {
 
       val geneIdsBroadcast = sc.broadcast(geneIds.toList)
 
-      val randomQuerySignaturesRDD : RDD[List[(String, Float)]] = {
+      val randomQuerySignaturesRDD : RDD[(Int, WritableQuerySignature)] = {
         sc.parallelize(List.range(0, experiment.randomSignatureCount, 1)) mapPartitionsWithIndex { case (partition, indices) => {
           val r = new Random()
           val _geneIds = geneIdsBroadcast.value
@@ -143,13 +145,14 @@ trait SparkExperimentRunnerComponent extends ExperimentRunnerComponent {
             val geneIds = randomGeneIds.zipWithIndex.filter{case (geneId, idx) => idx < sigLength }.map{ case (geneId, idx) => geneId}
             val foldChange = Array.fill(sigLength)(if (r.nextInt(2) == 0) -1f else 1f)
 
-            geneIds.zip(foldChange)
+            (i, WritableQuerySignature(geneIds.zip(foldChange)))
           })
 
           randomQuerySigs
         }}
       }
 
+//      randomQuerySignaturesRDD.saveAsSequenceFile("/home/mike/Penbwrdd/random_query_signatures", None)
       val randomQuerySignatures = sc.broadcast(randomQuerySignaturesRDD.collect())
 
       logger.info("Finished calculating random signatures...")
@@ -175,15 +178,16 @@ trait SparkExperimentRunnerComponent extends ExperimentRunnerComponent {
         }
 
         val querySig = querySigBroadcast.value
-        val randomQuerySigs = randomQuerySignatures.value
+//        val randomQuerySigs = randomQuerySignatures.value
         val connectionScore = calculateConnectionScore(querySig, avgFoldChange) / maxConnectionsStrength
 
-        val randomScores = randomQuerySigs map(r => calculateConnectionScore(querySig, r.toMap))
+//        val randomScores = randomQuerySigs map{ case (i, querySignature) => calculateConnectionScore(querySig, querySignature.foldChange.toMap)}
+//
+//        val pVal = randomScores.foldLeft(0f)((count, randScore) => {
+//          if (randScore >= connectionScore) count + 1 else count
+//        }) / randomQuerySigs.size
 
-        val pVal = randomScores.foldLeft(0f)((count, randScore) => {
-          if (randScore >= connectionScore) count + 1 else count
-        }) / randomQuerySigs.size
-
+        val pVal = 0f
         (refSetName, connectionScore, pVal)
       }}
 
@@ -239,5 +243,27 @@ trait SparkExperimentRunnerComponent extends ExperimentRunnerComponent {
       refsetNameToProfileTuples
     }
 
+  }
+}
+
+case class WritableQuerySignature(var foldChange: List[(String, Float)]) extends Writable {
+
+  override def write(out: DataOutput): Unit = {
+    out.writeInt(foldChange.size)
+    // save the number of elements
+    foldChange.foreach{ case (geneId, foldChange) => {
+      out.writeUTF(geneId)
+      out.writeFloat(foldChange)
+    }}
+  }
+
+  override def readFields(in: DataInput): Unit = {
+    val dataSetSize = in.readInt()
+
+    val readFoldChange : List[(String, Float)] = (0 to dataSetSize).toList map (i => {
+      (in.readUTF(), in.readFloat())
+    })
+
+    this.foldChange = readFoldChange
   }
 }
