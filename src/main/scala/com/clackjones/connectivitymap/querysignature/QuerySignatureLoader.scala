@@ -52,13 +52,13 @@ trait QuerySignatureFileLoaderComponent extends QuerySignatureLoaderComponent {
       return Some((srcFile map (line => splitLine(line))).toMap)
     }
 
-    private def splitLine(line: String): (String, Int) = {
+    private def splitLine(line: String): (String, Float) = {
       val splitLine = whitespacePattern.split(line.trim())
 
       val geneName = splitLine(0)
       val geneStrength = splitLine(1)
 
-      (geneName, geneStrength.toInt)
+      (geneName, geneStrength.toFloat)
     }
   }
 }

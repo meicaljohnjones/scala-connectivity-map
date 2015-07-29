@@ -38,7 +38,7 @@ trait DefaultRandomSignatureGeneratorComponent extends RandomSignatureGeneratorC
       (selectedGeneIds map {(_, nextRandomUpDown()) }).toMap
     }
 
-    def nextRandomUpDown() : Int = if (randomDataGenerator.nextInt(0, 1) == 0) return -1 else return 1
+    def nextRandomUpDown() : Float = if (randomDataGenerator.nextInt(0, 1) == 0) return -1f else return 1f
 
   }
 

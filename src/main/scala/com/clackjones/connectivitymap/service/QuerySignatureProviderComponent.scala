@@ -20,7 +20,7 @@ trait QuerySignatureProviderComponent {
   }
 }
 
-case class QuerySignature(val name: String, val geneUpDown : Map[String, Int]) {
+case class QuerySignature(val name: String, val geneUpDown : Map[String, Float]) {
 
   /**
    *
@@ -92,7 +92,7 @@ trait SparkQuerySignatureProviderComponent extends QuerySignatureProviderCompone
         val filteredFileLines = fileLines.filter (line => !line.trim().startsWith("#"))
         filteredFileLines.next() // skip header line
 
-        val geneUpDown: Map[String, Int] = (filteredFileLines map (line => {
+        val geneUpDown: Map[String, Float] = (filteredFileLines map (line => {
               QuerySignatureLineSplitter.splitLine(line)
         })).toMap
 
@@ -116,19 +116,19 @@ trait SparkQuerySignatureProviderComponent extends QuerySignatureProviderCompone
     val logger = LoggerFactory.getLogger(getClass())
     val whitespacePattern = Pattern.compile("\\s+")
 
-    def splitLine(line: String): (String, Int) = {
+    def splitLine(line: String): (String, Float) = {
       val splitLine = whitespacePattern.split(line.trim())
 
       val geneName = splitLine(0)
       val geneStrength = splitLine(1)
 
       try {
-        geneStrength.toInt
+        geneStrength.toFloat
       } catch {
-        case n: NumberFormatException => logger.error(s"Couldn't parse '$line' to (String, Int) tuple")
+        case n: NumberFormatException => logger.error(s"Couldn't parse '$line' to (String, Float) tuple")
       }
 
-      (geneName, geneStrength.toInt)
+      (geneName, geneStrength.toFloat)
     }
   }
 

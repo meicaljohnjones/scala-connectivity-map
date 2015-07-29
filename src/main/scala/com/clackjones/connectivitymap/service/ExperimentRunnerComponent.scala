@@ -167,7 +167,7 @@ trait SparkExperimentRunnerComponent extends ExperimentRunnerComponent {
 
       logger.info("Calculating results...")
       val results = referenceSetsRDD map { case (refSetName, avgFoldChange) => {
-        def calculateConnectionScore(querySignature: Map[String, Int],
+        def calculateConnectionScore(querySignature: Map[String, Float],
                                      referenceSignatureFoldChange: Map[String, Float])  = {
 
           val connectionStrength = querySigBroadcast.value.foldLeft(0f){
@@ -178,16 +178,15 @@ trait SparkExperimentRunnerComponent extends ExperimentRunnerComponent {
         }
 
         val querySig = querySigBroadcast.value
-//        val randomQuerySigs = randomQuerySignatures.value
-        val connectionScore = calculateConnectionScore(querySig, avgFoldChange) / maxConnectionsStrength
+        val randomQuerySigs = randomQuerySignatures.value
+        val connectionScore = calculateConnectionScore(querySig, avgFoldChange)
 
-//        val randomScores = randomQuerySigs map{ case (i, querySignature) => calculateConnectionScore(querySig, querySignature.foldChange.toMap)}
-//
-//        val pVal = randomScores.foldLeft(0f)((count, randScore) => {
-//          if (randScore >= connectionScore) count + 1 else count
-//        }) / randomQuerySigs.size
+        val randomScores = randomQuerySigs map{ case (i, querySignature) => calculateConnectionScore(querySignature.foldChange.toMap, avgFoldChange)}
 
-        val pVal = 0f
+        val pVal = randomScores.foldLeft(0f)((count, randScore) => {
+          if (randScore >= connectionScore) count + 1 else count
+        }) / randomQuerySigs.size
+
         (refSetName, connectionScore, pVal)
       }}
 
