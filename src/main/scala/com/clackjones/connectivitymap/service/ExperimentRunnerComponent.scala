@@ -216,7 +216,7 @@ trait SparkExperimentRunnerComponent extends ExperimentRunnerComponent {
      * to their fold change.
       */
     def loadReferenceSetsRDD() = {
-      val refsetsFileRDD = sc.wholeTextFiles("file://" + refsetsPath + "/*", minPartitions = 4).groupBy {
+      val refsetsFileRDD = sc.wholeTextFiles(refsetsPath + "/*", minPartitions = 4).groupBy {
         case (filepath, contents) => filepath.substring(filepath.lastIndexOf("/") + 1, filepath.lastIndexOf("_"))
       }
 
