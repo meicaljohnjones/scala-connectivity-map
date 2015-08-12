@@ -120,10 +120,16 @@ trait SparkExperimentRunnerComponent extends ExperimentRunnerComponent {
         return None
       }
 
+      val refPath = config("reffileLocation")
+
+      val refsetsFileRDD = sc.wholeTextFiles(refPath + "/*").groupBy {
+        case (filepath, contents) => filepath.substring(filepath.lastIndexOf("/") + 1, filepath.lastIndexOf("_"))
+      }
+
+      val referenceSetsRDD = refsetsFileRDD.map{ case (refsetName, profiles) =>
+        SparkCmapHelperFunctions.refSetToAverageGeneExpression(refsetName, profiles)}
 
       val querySignature : QuerySignatureMap = serviceQuerySignature.get.geneUpDown
-
-      val referenceSetsRDD = SparkCmapHelperFunctions.loadReferenceSetsRDD()
 
       val firstRefSet = referenceSetsRDD.first()
       val geneIds: Array[String] = firstRefSet._2.keys.toArray
@@ -196,60 +202,38 @@ trait SparkExperimentRunnerComponent extends ExperimentRunnerComponent {
       Some(experimentResult)
     }
   }
+}
 
-  object SparkCmapHelperFunctions {
-    val logger = LoggerFactory.getLogger(getClass())
-    private val refsetsPath = config("reffileLocation")
-    val hashPartitioner = new HashPartitioner(4)
+object SparkCmapHelperFunctions {
 
-    /**
-      * Creates an RDD with key-pair of ReferenceSet name as the key and
-      * then a collection of tuples which are the ReferenceProfiles containing
-      * the name of the ReferenceProfile as well as the mapping of gene probe IDs
-     * to their fold change.
-      */
-    def loadReferenceSetsRDD() = {
-      val refPath = refsetsPath
-      val refsetsFileRDD = sc.wholeTextFiles(refPath + "/*").groupBy {
-        case (filepath, contents) => filepath.substring(filepath.lastIndexOf("/") + 1, filepath.lastIndexOf("_"))
-      }
+  def calculateConnectionScore(querySignature: Map[String, Float],
+                               referenceSignatureFoldChange: Map[String, Float],
+                               maxConnectionStrength: Float)  = {
 
-      val refsetNameToProfileTuples = refsetsFileRDD map {
-        case (refsetName, profiles) => {
-          val geneFoldChanges = profiles flatMap { case (filename, fileContents) => {
-            val lines = fileContents.split("\n").drop(1)
-
-            (lines map (line => {
-              val splitLine = line.split("\t")
-              (splitLine(0), splitLine(1).toFloat)
-            }))
-          }}
-
-          /** find the average gene fold change of all the profiles **/
-          val avgGeneFoldChange = geneFoldChanges.groupBy(_._1) map (l => (l._1, (l._2 map (m => m._2) reduce (_ + _)) / 2f))
-
-          (refsetName, avgGeneFoldChange)
-
-        }
-      }
-
-      refsetNameToProfileTuples
+    val connectionStrength = querySignature.foldLeft(0f){
+      case (strength, (geneId, reg)) => strength + referenceSignatureFoldChange(geneId) * reg
     }
 
-    def calculateConnectionScore(querySignature: Map[String, Float],
-                                 referenceSignatureFoldChange: Map[String, Float],
-                                 maxConnectionStrength: Float)  = {
-
-      val connectionStrength = querySignature.foldLeft(0f){
-        case (strength, (geneId, reg)) => strength + referenceSignatureFoldChange(geneId) * reg
-      }
-
-      connectionStrength / maxConnectionStrength
-    }
+    connectionStrength / maxConnectionStrength
   }
 
+  def refSetToAverageGeneExpression(refsetName: String, profiles: Iterable[(String, String)])  = {
+    val geneFoldChanges = profiles flatMap { case (filename, fileContents) => {
+      val lines = fileContents.split("\n").drop(1)
 
+      (lines map (line => {
+        val splitLine = line.split("\t")
+        (splitLine(0), splitLine(1).toFloat)
+      }))
+    }}
+
+    /** find the average gene fold change of all the profiles **/
+    val avgGeneFoldChange = geneFoldChanges.groupBy(_._1) map (l => (l._1, (l._2 map (m => m._2) reduce (_ + _)) / 2f))
+
+    (refsetName, avgGeneFoldChange)
+  }
 }
+
 
 case class WritableQuerySignature(var foldChange: List[(String, Float)]) extends Writable {
 
