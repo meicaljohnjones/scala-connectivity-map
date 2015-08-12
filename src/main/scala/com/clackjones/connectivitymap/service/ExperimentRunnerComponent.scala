@@ -8,7 +8,6 @@ import com.clackjones.connectivitymap.cmap.ConnectivityMapModule
 import com.clackjones.connectivitymap.referenceprofile.ReferenceSetLoaderComponent
 import com.clackjones.connectivitymap.spark.SparkContextComponent
 import org.apache.hadoop.io.Writable
-import org.apache.hadoop.io.compress.GzipCodec
 
 import org.apache.spark.HashPartitioner
 import org.apache.spark.rdd.RDD
@@ -124,7 +123,7 @@ trait SparkExperimentRunnerComponent extends ExperimentRunnerComponent {
 
       val querySignature : QuerySignatureMap = serviceQuerySignature.get.geneUpDown
 
-      val referenceSetsRDD = SparkReferenceSetRDDCreator.loadReferenceSetsRDD()
+      val referenceSetsRDD = SparkCmapHelperFunctions.loadReferenceSetsRDD()
 
       val firstRefSet = referenceSetsRDD.first()
       val geneIds: Array[String] = firstRefSet._2.keys.toArray
@@ -167,28 +166,22 @@ trait SparkExperimentRunnerComponent extends ExperimentRunnerComponent {
 
       logger.info("Calculating results...")
       val results = referenceSetsRDD map { case (refSetName, avgFoldChange) => {
-        def calculateConnectionScore(querySignature: Map[String, Float],
-                                     referenceSignatureFoldChange: Map[String, Float])  = {
 
-          val connectionStrength = querySigBroadcast.value.foldLeft(0f){
-            case (strength, (geneId, reg)) => strength + referenceSignatureFoldChange(geneId) * reg
-          }
-
-          connectionStrength / maxConnectionsStrength
-        }
 
         val querySig = querySigBroadcast.value
         val randomQuerySigs = randomQuerySignatures.value
-        val connectionScore = calculateConnectionScore(querySig, avgFoldChange)
+        val connectionScore = SparkCmapHelperFunctions.calculateConnectionScore(querySig, avgFoldChange, maxConnectionsStrength)
 
-        val randomScores = randomQuerySigs map{ case (i, querySignature) => calculateConnectionScore(querySignature.foldChange.toMap, avgFoldChange)}
+        val randomScores = randomQuerySigs map{ case (i, querySignature) => {
+          SparkCmapHelperFunctions.calculateConnectionScore(querySignature.foldChange.toMap, avgFoldChange, maxConnectionsStrength)
+        }}
 
         val pVal = randomScores.foldLeft(0f)((count, randScore) => {
           if (randScore >= connectionScore) count + 1 else count
         }) / randomQuerySigs.size
 
         (refSetName, connectionScore, pVal)
-      }}
+    }}
 
       val collectedResults = results.collect()
 
@@ -204,7 +197,7 @@ trait SparkExperimentRunnerComponent extends ExperimentRunnerComponent {
     }
   }
 
-  object SparkReferenceSetRDDCreator {
+  object SparkCmapHelperFunctions {
     val logger = LoggerFactory.getLogger(getClass())
     private val refsetsPath = config("reffileLocation")
     val hashPartitioner = new HashPartitioner(4)
@@ -216,7 +209,8 @@ trait SparkExperimentRunnerComponent extends ExperimentRunnerComponent {
      * to their fold change.
       */
     def loadReferenceSetsRDD() = {
-      val refsetsFileRDD = sc.wholeTextFiles(refsetsPath + "/*", minPartitions = 4).groupBy {
+      val refPath = refsetsPath
+      val refsetsFileRDD = sc.wholeTextFiles(refPath + "/*").groupBy {
         case (filepath, contents) => filepath.substring(filepath.lastIndexOf("/") + 1, filepath.lastIndexOf("_"))
       }
 
@@ -242,7 +236,19 @@ trait SparkExperimentRunnerComponent extends ExperimentRunnerComponent {
       refsetNameToProfileTuples
     }
 
+    def calculateConnectionScore(querySignature: Map[String, Float],
+                                 referenceSignatureFoldChange: Map[String, Float],
+                                 maxConnectionStrength: Float)  = {
+
+      val connectionStrength = querySignature.foldLeft(0f){
+        case (strength, (geneId, reg)) => strength + referenceSignatureFoldChange(geneId) * reg
+      }
+
+      connectionStrength / maxConnectionStrength
+    }
   }
+
+
 }
 
 case class WritableQuerySignature(var foldChange: List[(String, Float)]) extends Writable {
