@@ -15,6 +15,6 @@ case class ConnectionScoreResult(referenceSetName: String, connectionScore: Floa
   override def toString(): String = {
     List("ConnectionResult:", referenceSetName,
       "Score: " + connectionScore.toString,
-      "P-value: " + pValue.toString).mkString("\n")
+      "P-value: " + pValue.toString).mkString(",") + "\n"
   }
 }
