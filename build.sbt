@@ -40,8 +40,8 @@ assemblyMergeStrategy in assembly := {
 
 assemblyJarName in assembly := "spark-connectivity-map.jar"
 
-mainClass in (Compile, run) := Some("com.clackjones.connectivitymap.JettyLauncher")
-mainClass in (Compile, packageBin) := Some("com.clackjones.connectivitymap.JettyLauncher")
+mainClass in (Compile, run) := Some("com.clackjones.connectivitymap.Main")
+mainClass in (Compile, packageBin) := Some("com.clackjones.connectivitymap.Main")
 
 /* include "provided" library dependencies when do `sbt run` */
 run in Compile <<= Defaults.runTask(fullClasspath in Compile, mainClass in (Compile, run), runner in (Compile, run))
