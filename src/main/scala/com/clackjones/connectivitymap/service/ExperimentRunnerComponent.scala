@@ -9,6 +9,7 @@ import com.clackjones.connectivitymap.referenceprofile.ReferenceSetLoaderCompone
 import com.clackjones.connectivitymap.spark.SparkContextComponent
 import org.apache.hadoop.io.Writable
 
+import org.apache.spark.Partitioner
 import org.apache.spark.HashPartitioner
 import org.apache.spark.rdd.RDD
 import org.slf4j.LoggerFactory
@@ -122,12 +123,14 @@ trait SparkExperimentRunnerComponent extends ExperimentRunnerComponent {
 
       val refPath = config("reffileLocation")
 
-      val refsetsFileRDD = sc.wholeTextFiles(refPath + "/*").groupBy {
-        case (filepath, contents) => filepath.substring(filepath.lastIndexOf("/") + 1, filepath.lastIndexOf("_"))
-      }
-
-      val referenceSetsRDD = refsetsFileRDD.map{ case (refsetName, profiles) =>
-        SparkCmapHelperFunctions.refSetToAverageGeneExpression(refsetName, profiles)}
+      val referenceSetsRDD = sc.wholeTextFiles(refPath + "/*")
+        .partitionBy(new ReferenceSetPartitioner(20))
+        .groupBy {
+          case (filepath, contents) => filepath.substring(filepath.lastIndexOf("/") + 1, filepath.lastIndexOf("_"))
+        }
+        .map {
+          case (refsetName, profiles) => SparkCmapHelperFunctions.refSetToAverageGeneExpression(refsetName, profiles)
+        }
 
       val querySignature : QuerySignatureMap = serviceQuerySignature.get.geneUpDown
 
@@ -254,5 +257,21 @@ case class WritableQuerySignature(var foldChange: List[(String, Float)]) extends
     })
 
     this.foldChange = readFoldChange
+  }
+}
+
+
+class ReferenceSetPartitioner(val partitionCount: Int) extends Partitioner {
+  val hashPartitioner = new HashPartitioner(partitionCount)
+
+  override def numPartitions: Int = partitionCount
+
+  override def getPartition(key: Any): Int = {
+    // partition by refset name
+    // extract refset name from path
+    val path : String = key.toString()
+    path.substring(path.lastIndexOf("/") + 1, path.lastIndexOf("_"))
+
+    hashPartitioner.getPartition(path)
   }
 }
