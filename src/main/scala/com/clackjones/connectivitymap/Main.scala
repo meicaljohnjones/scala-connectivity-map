@@ -11,7 +11,7 @@ import com.clackjones.connectivitymap.spark.SparkContextComponent
  */
 class ConnectivityMapServiceRunner {
   this: QuerySignatureProviderComponent with ReferenceSetProviderComponent with ExperimentRunnerComponent
-  with InMemoryExperimentProviderComponent with InMemoryExperimentResultProviderComponent =>
+  with InMemoryExperimentProviderComponent with InMemoryExperimentResultProviderComponent with SparkContextComponent =>
 
   def runExample(): Unit = {
     println("Creating experiment object")
@@ -23,6 +23,9 @@ class ConnectivityMapServiceRunner {
 
     val result : ExperimentResult = experimentResultProvider.find(experimentWithId.id).get
     result.scores foreach (println)
+
+    // clean up resources
+    sc.stop()
   }
 }
 
