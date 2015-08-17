@@ -123,19 +123,23 @@ trait SparkExperimentRunnerComponent extends ExperimentRunnerComponent {
 
       val refPath = config("reffileLocation")
 
-      val referenceSetsRDD = sc.wholeTextFiles(refPath + "/*")
-        .partitionBy(new ReferenceSetPartitioner(20))
-        .groupBy {
-          case (filepath, contents) => filepath.substring(filepath.lastIndexOf("/") + 1, filepath.lastIndexOf("_"))
-        }
-        .map {
-          case (refsetName, profiles) => SparkCmapHelperFunctions.refSetToAverageGeneExpression(refsetName, profiles)
-        }
+      val referenceSetsFilesRDD = sc.wholeTextFiles(refPath + "/*").partitionBy(new ReferenceSetPartitioner(20))
+
+
+      val referenceSetsRDD = referenceSetsFilesRDD
+        .map { case (path, contents) => (path, SparkCmapHelperFunctions.fileToRefProfile(contents)) }
+        .map { case (path, profile) => (SparkCmapHelperFunctions.filenameToRefsetName(path), profile) }
+        .reduceByKey (SparkCmapHelperFunctions.calculateAverageFoldChange(_, _))
+        .map { case (refsetName, foldChange) => (refsetName, foldChange.toMap) }
+
+      val geneIds = referenceSetsFilesRDD
+        .zipWithIndex().filter(_._2 == 1L) //take only one
+        .map (_._1) //remove index
+        .map { case (filname: String, contents: String) => SparkCmapHelperFunctions.fileToRefProfile(contents) }
+        .first()
+        .map { case (geneId: String, foldChange: Float) => geneId }
 
       val querySignature : QuerySignatureMap = serviceQuerySignature.get.geneUpDown
-
-      val firstRefSet = referenceSetsRDD.first()
-      val geneIds: Array[String] = firstRefSet._2.keys.toArray
       val sigLength : Int = querySignature.size
 
       logger.info("Calculating random signatures...")
@@ -220,21 +224,26 @@ object SparkCmapHelperFunctions {
     connectionStrength / maxConnectionStrength
   }
 
-  def refSetToAverageGeneExpression(refsetName: String, profiles: Iterable[(String, String)])  = {
-    val geneFoldChanges = profiles flatMap { case (filename, fileContents) => {
-      val lines = fileContents.split("\n").drop(1)
-
-      (lines map (line => {
-        val splitLine = line.split("\t")
-        (splitLine(0), splitLine(1).toFloat)
-      }))
-    }}
-
-    /** find the average gene fold change of all the profiles **/
-    val avgGeneFoldChange = geneFoldChanges.groupBy(_._1) map (l => (l._1, (l._2 map (m => m._2) reduce (_ + _)) / 2f))
-
-    (refsetName, avgGeneFoldChange)
+  def filenameToRefsetName(filename: String) : String = {
+    filename.substring(filename.lastIndexOf("/") + 1, filename.lastIndexOf("_"))
   }
+
+  def fileToRefProfile(fileContents : String): Iterable[(String, Float)] = {
+    val lines = fileContents.split("\n").drop(1)
+
+    (lines map (line => {
+      val splitLine = line.split("\t")
+      (splitLine(0), splitLine(1).toFloat)
+    }))
+  }
+
+  def calculateAverageFoldChange(fc1: Iterable[(String, Float)], fc2: Iterable[(String, Float)]) = {
+    fc1.map{ case (geneId, foldChange) => {
+      val avgFoldChange = (foldChange + fc2.find(geneId.equals(_)).getOrElse(geneId, 0f)._2) / 2f
+      (geneId, avgFoldChange)
+    }}
+  }
+
 }
 
 
