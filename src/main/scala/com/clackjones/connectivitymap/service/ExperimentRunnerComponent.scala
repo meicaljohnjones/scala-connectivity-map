@@ -123,7 +123,7 @@ trait SparkExperimentRunnerComponent extends ExperimentRunnerComponent {
 
       val refPath = config("reffileLocation")
 
-      val referenceSetsFilesRDD = sc.wholeTextFiles(refPath + "/*").partitionBy(new ReferenceSetPartitioner(20))
+      val referenceSetsFilesRDD = sc.wholeTextFiles(refPath + "/*.gz", 5)
 
 
       val referenceSetsRDD = referenceSetsFilesRDD
@@ -212,6 +212,7 @@ trait SparkExperimentRunnerComponent extends ExperimentRunnerComponent {
 }
 
 object SparkCmapHelperFunctions {
+  val refPathLength = config("reffileLocation").length + 1
 
   def calculateConnectionScore(querySignature: Map[String, Float],
                                referenceSignatureFoldChange: Map[String, Float],
@@ -225,7 +226,7 @@ object SparkCmapHelperFunctions {
   }
 
   def filenameToRefsetName(filename: String) : String = {
-    filename.substring(filename.lastIndexOf("/") + 1, filename.lastIndexOf("_"))
+    filename.substring(refPathLength, filename.lastIndexOf("_"))
   }
 
   def fileToRefProfile(fileContents : String): Iterable[(String, Float)] = {
