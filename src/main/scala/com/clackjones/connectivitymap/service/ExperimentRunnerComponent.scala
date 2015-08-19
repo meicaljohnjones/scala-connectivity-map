@@ -125,12 +125,14 @@ trait SparkExperimentRunnerComponent extends ExperimentRunnerComponent {
 
       val referenceSetsFilesRDD = sc.wholeTextFiles(refPath + "/*.gz", 5)
 
+      val referenceSetNamesRDD =
+        referenceSetsFilesRDD.keys map (SparkCmapHelperFunctions.filenameToRefsetName(_))
 
-      val referenceSetsRDD = referenceSetsFilesRDD
-        .map { case (path, contents) => (path, SparkCmapHelperFunctions.fileToRefProfile(contents)) }
-        .map { case (path, profile) => (SparkCmapHelperFunctions.filenameToRefsetName(path), profile) }
-        .reduceByKey (SparkCmapHelperFunctions.calculateAverageFoldChange(_, _))
-        .map { case (refsetName, foldChange) => (refsetName, foldChange.toMap) }
+      val referenceSetValuesRDD =
+        referenceSetsFilesRDD.values map (SparkCmapHelperFunctions.fileToRefProfile(_))
+
+      val referenceSetsRDD = referenceSetNamesRDD.zip(referenceSetValuesRDD)
+        .reduceByKey(SparkCmapHelperFunctions.calculateAverageFoldChange(_, _))
 
       val geneIds = referenceSetsFilesRDD
         .zipWithIndex().filter(_._2 == 1L) //take only one
@@ -164,7 +166,6 @@ trait SparkExperimentRunnerComponent extends ExperimentRunnerComponent {
         }}
       }
 
-//      randomQuerySignaturesRDD.saveAsSequenceFile("/home/mike/Penbwrdd/random_query_signatures", None)
       val randomQuerySignatures = sc.broadcast(randomQuerySignaturesRDD.collect())
 
       logger.info("Finished calculating random signatures...")
@@ -229,19 +230,18 @@ object SparkCmapHelperFunctions {
     filename.substring(refPathLength, filename.lastIndexOf("_"))
   }
 
-  def fileToRefProfile(fileContents : String): Iterable[(String, Float)] = {
+  def fileToRefProfile(fileContents : String): Map[String, Float] = {
     val lines = fileContents.split("\n").drop(1)
 
     (lines map (line => {
       val splitLine = line.split("\t")
       (splitLine(0), splitLine(1).toFloat)
-    }))
+    })).toMap
   }
 
-  def calculateAverageFoldChange(fc1: Iterable[(String, Float)], fc2: Iterable[(String, Float)]) = {
+  def calculateAverageFoldChange(fc1: Map[String, Float], fc2: Map[String, Float]) = {
     fc1.map{ case (geneId, foldChange) => {
-      val avgFoldChange = (foldChange + fc2.find(geneId.equals(_)).getOrElse(geneId, 0f)._2) / 2f
-      (geneId, avgFoldChange)
+      (geneId, (foldChange + fc2.getOrElse(geneId, 0f)) / 2f)
     }}
   }
 
