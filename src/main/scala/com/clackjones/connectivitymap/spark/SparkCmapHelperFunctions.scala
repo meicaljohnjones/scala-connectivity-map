@@ -1,9 +1,17 @@
 package com.clackjones.connectivitymap.spark
 
-import com.clackjones.connectivitymap._
+import scala.util.Try
+import scala.util.Success
+import scala.util.Failure
+
+import scala.util.Properties
+
+import scala.util.matching.Regex
 
 object SparkCmapHelperFunctions {
-  val refPathLength = config("reffileLocation").length + 1
+  val fileSeparatorRegex = new Regex("\\"+System.getProperty("file.separator"))
+  val filenameParameterSep = "__"
+  val filenameParameterRegex = new Regex(filenameParameterSep)
 
   def calculateConnectionScore(querySignature: Map[String, Float],
                                referenceSignatureFoldChange: Map[String, Float],
@@ -16,8 +24,14 @@ object SparkCmapHelperFunctions {
     connectionStrength / maxConnectionStrength
   }
 
-  def filenameToRefsetName(filename: String) : String = {
-    filename.substring(refPathLength, filename.lastIndexOf("_"))
+  def filenameToRefsetName(filename: String) : Try[String] = {
+    val filenameWithoutPath = fileSeparatorRegex.split(filename).last
+    val params : Array[String] = filenameParameterRegex.split(filenameWithoutPath)
+    if (params.size == 7) {
+      Success(params(0) + filenameParameterSep + params(4))
+    } else {
+      Failure(new Exception("Invalid Reference Set filename: "+filename))
+    }
   }
 
   def fileToRefProfile(fileContents : String): Map[String, Float] = {

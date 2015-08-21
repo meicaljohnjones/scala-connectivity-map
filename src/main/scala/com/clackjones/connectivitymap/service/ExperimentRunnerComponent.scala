@@ -10,11 +10,14 @@ import com.clackjones.connectivitymap.spark.SparkContextComponent
 import com.clackjones.connectivitymap.spark.SparkCmapHelperFunctions
 import org.apache.hadoop.io.Writable
 
+import scala.util.Failure
+import scala.util.Random
+import scala.util.Success
+
 import org.apache.spark.Partitioner
 import org.apache.spark.HashPartitioner
 import org.apache.spark.rdd.RDD
 import org.slf4j.LoggerFactory
-import scala.util.Random
 
 /**
  * Implementation note:
@@ -129,6 +132,13 @@ trait SparkExperimentRunnerComponent extends ExperimentRunnerComponent {
       val referenceSetNamesRDD =
         referenceSetsFilesRDD.keys map (SparkCmapHelperFunctions.filenameToRefsetName(_))
 
+      // handle case where ReferenceSet filename invalid
+      val invalidReferenceSetsRDD = referenceSetNamesRDD.filter(_.isFailure)
+      if (invalidReferenceSetsRDD.count() > 0) {
+          logger.error("A number of your Reference Profiles has invalid filenames...exiting")
+          System.exit(1)
+      }
+
       val referenceSetValuesRDD =
         referenceSetsFilesRDD.values map (SparkCmapHelperFunctions.fileToRefProfile(_))
 
@@ -201,7 +211,7 @@ trait SparkExperimentRunnerComponent extends ExperimentRunnerComponent {
       val collectedResults = results.collect()
 
       val result = collectedResults map {
-        case (refsetName, connectionScore, pVal) => ConnectionScoreResult(refsetName,
+        case (refsetName, connectionScore, pVal) => ConnectionScoreResult(refsetName.get,
 	     connectionScore, pVal, 0)
       }
 
