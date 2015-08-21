@@ -1,7 +1,7 @@
 package com.clackjones.connectivitymap
 
 import com.clackjones.connectivitymap.cmap.ConnectivityMapModule
-import com.clackjones.connectivitymap.querysignature.{DefaultRandomSignatureGeneratorComponent, QuerySignatureFileLoaderComponent}
+import com.clackjones.connectivitymap.querysignature.DefaultRandomSignatureGeneratorComponent
 import com.clackjones.connectivitymap.referenceprofile.{ReferenceProfileFileLoaderComponent, ReferenceSetFileLoaderComponent, ReferenceSetCreatorByDrugDoseAndCellLineComponent}
 import com.clackjones.connectivitymap.service._
 import com.clackjones.connectivitymap.spark.SparkContextComponent
@@ -15,7 +15,11 @@ class ConnectivityMapServiceRunner {
 
   def runExample(): Unit = {
     println("Creating experiment object")
-    val experiment = Experiment(-1, "Estrogen", 100)
+    val experimentId = 1
+    val querySignature = config("querySignature")
+    val randomSignaureCount = config("randomSignatureCount").toInt
+
+    val experiment = Experiment(experimentId, querySignature, randomSignaureCount)
     val experimentWithId = experimentProvider.add(experiment)
 
     println("Running experiment...")
