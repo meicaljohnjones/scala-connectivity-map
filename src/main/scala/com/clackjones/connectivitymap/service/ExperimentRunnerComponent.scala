@@ -1,23 +1,15 @@
 package com.clackjones.connectivitymap.service
 
-import java.io.{DataOutput, DataInput}
-
 import com.clackjones.connectivitymap._
 import com.clackjones.connectivitymap.querysignature.RandomSignatureGeneratorComponent
 import com.clackjones.connectivitymap.cmap.ConnectivityMapModule
 import com.clackjones.connectivitymap.referenceprofile.ReferenceSetLoaderComponent
-import com.clackjones.connectivitymap.spark.SparkContextComponent
-import com.clackjones.connectivitymap.spark.SparkCmapHelperFunctions
-import org.apache.hadoop.io.Writable
+import com.clackjones.connectivitymap.spark.{WritableQuerySignature, SparkContextComponent, SparkCmapHelperFunctions}
 
-import scala.util.Failure
-import scala.util.Random
-import scala.util.Success
-
-import org.apache.spark.Partitioner
-import org.apache.spark.HashPartitioner
 import org.apache.spark.rdd.RDD
 import org.slf4j.LoggerFactory
+
+import scala.util.Random
 
 /**
  * Implementation note:
@@ -220,29 +212,5 @@ trait SparkExperimentRunnerComponent extends ExperimentRunnerComponent {
 
       Some(experimentResult)
     }
-  }
-}
-
-
-
-case class WritableQuerySignature(var foldChange: List[(String, Float)]) extends Writable {
-
-  override def write(out: DataOutput): Unit = {
-    out.writeInt(foldChange.size)
-    // save the number of elements
-    foldChange.foreach{ case (geneId, foldChange) => {
-      out.writeUTF(geneId)
-      out.writeFloat(foldChange)
-    }}
-  }
-
-  override def readFields(in: DataInput): Unit = {
-    val dataSetSize = in.readInt()
-
-    val readFoldChange : List[(String, Float)] = (0 to dataSetSize).toList map (i => {
-      (in.readUTF(), in.readFloat())
-    })
-
-    this.foldChange = readFoldChange
   }
 }
