@@ -7,6 +7,7 @@ import com.clackjones.connectivitymap.querysignature.RandomSignatureGeneratorCom
 import com.clackjones.connectivitymap.cmap.ConnectivityMapModule
 import com.clackjones.connectivitymap.referenceprofile.ReferenceSetLoaderComponent
 import com.clackjones.connectivitymap.spark.SparkContextComponent
+import com.clackjones.connectivitymap.spark.SparkCmapHelperFunctions
 import org.apache.hadoop.io.Writable
 
 import org.apache.spark.Partitioner
@@ -212,40 +213,6 @@ trait SparkExperimentRunnerComponent extends ExperimentRunnerComponent {
   }
 }
 
-object SparkCmapHelperFunctions {
-  val refPathLength = config("reffileLocation").length + 1
-
-  def calculateConnectionScore(querySignature: Map[String, Float],
-                               referenceSignatureFoldChange: Map[String, Float],
-                               maxConnectionStrength: Float)  = {
-
-    val connectionStrength = querySignature.foldLeft(0f){
-      case (strength, (geneId, reg)) => strength + referenceSignatureFoldChange(geneId) * reg
-    }
-
-    connectionStrength / maxConnectionStrength
-  }
-
-  def filenameToRefsetName(filename: String) : String = {
-    filename.substring(refPathLength, filename.lastIndexOf("_"))
-  }
-
-  def fileToRefProfile(fileContents : String): Map[String, Float] = {
-    val lines = fileContents.split("\n").drop(1)
-
-    (lines map (line => {
-      val splitLine = line.split("\t")
-      (splitLine(0), splitLine(1).toFloat)
-    })).toMap
-  }
-
-  def calculateAverageFoldChange(fc1: Map[String, Float], fc2: Map[String, Float]) = {
-    fc1.map{ case (geneId, foldChange) => {
-      (geneId, (foldChange + fc2.getOrElse(geneId, 0f)) / 2f)
-    }}
-  }
-
-}
 
 
 case class WritableQuerySignature(var foldChange: List[(String, Float)]) extends Writable {
