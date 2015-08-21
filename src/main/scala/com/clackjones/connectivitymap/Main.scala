@@ -18,18 +18,21 @@ class ConnectivityMapServiceRunner {
     experimentRunner.start()
 
     println("Creating experiment object")
-    val experimentId = 1
-    val querySignature = config("querySignature")
     val randomSignaureCount = config("randomSignatureCount").toInt
 
-    val experiment = Experiment(experimentId, querySignature, randomSignaureCount)
+    val experiment = Experiment(id = 1, querySignatureId = "Estrogen", randomSignaureCount)
     val experimentWithId = experimentProvider.add(experiment)
 
-    println("Running experiment...")
+    println("Running Estrogen experiment...")
+    val beforeEstrogen = System.currentTimeMillis()
     experimentRunner.runExperiment(experimentWithId)
 
     val result : ExperimentResult = experimentResultProvider.find(experimentWithId.id).get
     result.scores foreach (println)
+    val afterEstrogen = System.currentTimeMillis()
+
+    val timeTakenEstrogen = (afterEstrogen - beforeEstrogen) / 1000f
+    println(f"Time taken on Estrogen sig: $timeTakenEstrogen%.2f s")
 
     // clean up resources
     sc.stop()
