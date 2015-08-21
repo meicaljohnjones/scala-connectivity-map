@@ -126,7 +126,7 @@ trait SparkExperimentRunnerComponent extends ExperimentRunnerComponent {
       referenceSetsRDDOption = Some((referenceSetsFilesRDD
         .map{case (filename, fileContents) => {
         (SparkCmapHelperFunctions.filenameToRefsetName(filename), SparkCmapHelperFunctions.fileToRefProfile(fileContents)) }}
-        .partitionBy(new HashPartitioner(100))
+        .partitionBy(new HashPartitioner(20))
         .reduceByKey(SparkCmapHelperFunctions.calculateAverageFoldChange(_, _))).cache())
 
       geneIdsOption = Some((referenceSetsFilesRDD.first() match {
@@ -181,10 +181,10 @@ trait SparkExperimentRunnerComponent extends ExperimentRunnerComponent {
           val randomQuerySigs = indices map (i => {
             val randomGeneIds = r.shuffle(_geneIds)
 
-            val geneIds = randomGeneIds.zipWithIndex.filter{case (geneId, idx) => idx < sigLength }.map{ case (geneId, idx) => geneId}
+            val randomSigGeneIds = randomGeneIds.zipWithIndex.filter{case (geneId, idx) => idx < sigLength }.map{ case (geneId, idx) => geneId}
             val foldChange = Array.fill(sigLength)(if (r.nextInt(2) == 0) -1f else 1f)
 
-            (i, WritableQuerySignature(_geneIds.zip(foldChange)))
+            (i, WritableQuerySignature(randomSigGeneIds.zip(foldChange)))
           })
 
           randomQuerySigs
