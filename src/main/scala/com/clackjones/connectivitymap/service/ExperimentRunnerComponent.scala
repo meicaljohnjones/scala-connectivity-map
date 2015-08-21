@@ -122,11 +122,12 @@ trait SparkExperimentRunnerComponent extends ExperimentRunnerComponent {
 
       val referenceSetsFilesRDD = sc.wholeTextFiles(refPath + "/*.gz", 5)
 
-      referenceSetsRDDOption = Some(referenceSetsFilesRDD
+      /* this RDD is cached in memory such that on subsequent runs, it is faster */
+      referenceSetsRDDOption = Some((referenceSetsFilesRDD
         .map{case (filename, fileContents) => {
         (SparkCmapHelperFunctions.filenameToRefsetName(filename), SparkCmapHelperFunctions.fileToRefProfile(fileContents)) }}
         .partitionBy(new HashPartitioner(100))
-        .reduceByKey(SparkCmapHelperFunctions.calculateAverageFoldChange(_, _)))
+        .reduceByKey(SparkCmapHelperFunctions.calculateAverageFoldChange(_, _))).cache())
 
       geneIdsOption = Some((referenceSetsFilesRDD.first() match {
         case (filename, contents) => SparkCmapHelperFunctions.fileToRefProfile(contents)
