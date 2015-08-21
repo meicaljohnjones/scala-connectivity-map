@@ -3,7 +3,7 @@ package com.clackjones.connectivitymap.spark
 import java.io.{DataInput, DataOutput}
 import org.apache.hadoop.io.Writable
 
-case class WritableQuerySignature(var foldChange: List[(String, Float)]) extends Writable {
+case class WritableQuerySignature(var foldChange: Iterable[(String, Float)]) extends Writable {
 
   override def write(out: DataOutput): Unit = {
     out.writeInt(foldChange.size)

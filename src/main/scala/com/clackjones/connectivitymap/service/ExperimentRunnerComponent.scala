@@ -6,11 +6,12 @@ import com.clackjones.connectivitymap.cmap.ConnectivityMapModule
 import com.clackjones.connectivitymap.referenceprofile.ReferenceSetLoaderComponent
 import com.clackjones.connectivitymap.spark.{WritableQuerySignature, SparkContextComponent, SparkCmapHelperFunctions}
 import org.apache.spark.HashPartitioner
+import org.apache.spark.broadcast.Broadcast
 
 import org.apache.spark.rdd.RDD
 import org.slf4j.LoggerFactory
 
-import scala.util.Random
+import scala.util.{Try, Random}
 
 /**
  * Implementation note:
@@ -27,6 +28,7 @@ trait ExperimentRunnerComponent {
   def experimentRunner : ExperimentRunner
 
   trait ExperimentRunner {
+    def start() : Unit
     def runExperiment(experiment: Experiment) : Option[ExperimentResult]
   }
 }
@@ -43,7 +45,11 @@ trait DefaultExperimentRunnerComponent extends ExperimentRunnerComponent {
 
   class DefaultExperimentRunner extends ExperimentRunner {
 
-    def runExperiment(experiment: Experiment) : Option[ExperimentResult] = {
+    override def start(): Unit = {
+      // do nothing
+    }
+
+    override def runExperiment(experiment: Experiment) : Option[ExperimentResult] = {
 
       val refsets : Set[ReferenceSet] = referenceSetProvider.findAll().toSet
 
@@ -103,13 +109,54 @@ trait SparkExperimentRunnerComponent extends ExperimentRunnerComponent {
     with QuerySignatureProviderComponent with ExperimentResultProviderComponent =>
   val experimentRunner = new SparkExperimentRunner
 
+
   class SparkExperimentRunner extends ExperimentRunner {
     val logger = LoggerFactory.getLogger(getClass())
 
-    def runExperiment(experiment: Experiment) : Option[ExperimentResult] = {
+    val refPath: String = config("reffileLocation")
+    var referenceSetsRDDOption : Option[RDD[(Try[String], Map[String, Float])]] = None
+    var geneIdsOption : Option[Iterable[String]] = None
+
+    override def start(): Unit = {
+      logger.info("Creating RDDs")
+
+      val referenceSetsFilesRDD = sc.wholeTextFiles(refPath + "/*.gz", 5)
+
+      referenceSetsRDDOption = Some(referenceSetsFilesRDD
+        .map{case (filename, fileContents) => {
+        (SparkCmapHelperFunctions.filenameToRefsetName(filename), SparkCmapHelperFunctions.fileToRefProfile(fileContents)) }}
+        .partitionBy(new HashPartitioner(100))
+        .reduceByKey(SparkCmapHelperFunctions.calculateAverageFoldChange(_, _)))
+
+      geneIdsOption = Some((referenceSetsFilesRDD.first() match {
+        case (filename, contents) => SparkCmapHelperFunctions.fileToRefProfile(contents)
+      }).keys)
+
+    }
+
+    override def runExperiment(experiment: Experiment) : Option[ExperimentResult] = {
+      logger.info("Ensuring RDDs all set up")
+
+      val geneIds : Iterable[String] = geneIdsOption match {
+        case Some(gIds) => gIds
+        case None => {
+          logger.error("geneIdsOption were not found. Make sure startup() is called before runExperiment in SparkExperimentRunner()")
+          throw new Exception("geneIdsOption were not found. Make sure startup() is called before runExperiment in SparkExperimentRunner()")
+      }}
+
+      val geneIdsBroadcast : Broadcast[Iterable[String]] = sc.broadcast(geneIds.toList)
+
+      val referenceSetsRDD = referenceSetsRDDOption match {
+        case Some(rdd) => rdd
+        case None => logger.error("referenceSetsRDDOption was not found. Make sure startup() is called before runExperiment in SparkExperimentRunner()")
+          throw new Exception("referenceSetsRDDOption were not found. Make sure startup() is called before runExperiment in SparkExperimentRunner()")
+      }
+
 
       logger.info("Starting to runExperiment...")
-      logger.info("got stuff")
+
+
+
 
       logger.info("Loading query signatures...")
       val serviceQuerySignature : Option[QuerySignature] = querySignatureProvider.find(experiment.querySignatureId)
@@ -118,26 +165,12 @@ trait SparkExperimentRunnerComponent extends ExperimentRunnerComponent {
         return None
       }
 
-      val refPath = config("reffileLocation")
-
-      val referenceSetsFilesRDD = sc.wholeTextFiles(refPath + "/*.gz", 5)
-
-      val referenceSetsRDD = referenceSetsFilesRDD
-        .map{case (filename, fileContents) => {
-        (SparkCmapHelperFunctions.filenameToRefsetName(filename), SparkCmapHelperFunctions.fileToRefProfile(fileContents)) }}
-        .partitionBy(new HashPartitioner(100))
-        .reduceByKey(SparkCmapHelperFunctions.calculateAverageFoldChange(_, _))
-
-      val geneIds = (referenceSetsFilesRDD.first() match {
-        case (filename, contents) => SparkCmapHelperFunctions.fileToRefProfile(contents)
-      }).keys
-
       val querySignature : QuerySignatureMap = serviceQuerySignature.get.geneUpDown
       val sigLength : Int = querySignature.size
 
       logger.info("Calculating random signatures...")
 
-      val geneIdsBroadcast = sc.broadcast(geneIds.toList)
+
 
       val randomQuerySignaturesRDD : RDD[(Int, WritableQuerySignature)] = {
         sc.parallelize(List.range(0, experiment.randomSignatureCount, 1)) mapPartitionsWithIndex { case (partition, indices) => {
@@ -150,7 +183,7 @@ trait SparkExperimentRunnerComponent extends ExperimentRunnerComponent {
             val geneIds = randomGeneIds.zipWithIndex.filter{case (geneId, idx) => idx < sigLength }.map{ case (geneId, idx) => geneId}
             val foldChange = Array.fill(sigLength)(if (r.nextInt(2) == 0) -1f else 1f)
 
-            (i, WritableQuerySignature(geneIds.zip(foldChange)))
+            (i, WritableQuerySignature(_geneIds.zip(foldChange)))
           })
 
           randomQuerySigs

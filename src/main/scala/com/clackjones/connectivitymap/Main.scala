@@ -14,6 +14,9 @@ class ConnectivityMapServiceRunner {
   with InMemoryExperimentProviderComponent with InMemoryExperimentResultProviderComponent with SparkContextComponent =>
 
   def runExample(): Unit = {
+    println("Starting up experimentRunner")
+    experimentRunner.start()
+
     println("Creating experiment object")
     val experimentId = 1
     val querySignature = config("querySignature")
