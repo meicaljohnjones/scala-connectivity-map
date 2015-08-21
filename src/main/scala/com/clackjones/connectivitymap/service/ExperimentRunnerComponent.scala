@@ -5,6 +5,7 @@ import com.clackjones.connectivitymap.querysignature.RandomSignatureGeneratorCom
 import com.clackjones.connectivitymap.cmap.ConnectivityMapModule
 import com.clackjones.connectivitymap.referenceprofile.ReferenceSetLoaderComponent
 import com.clackjones.connectivitymap.spark.{WritableQuerySignature, SparkContextComponent, SparkCmapHelperFunctions}
+import org.apache.spark.HashPartitioner
 
 import org.apache.spark.rdd.RDD
 import org.slf4j.LoggerFactory
@@ -121,28 +122,15 @@ trait SparkExperimentRunnerComponent extends ExperimentRunnerComponent {
 
       val referenceSetsFilesRDD = sc.wholeTextFiles(refPath + "/*.gz", 5)
 
-      val referenceSetNamesRDD =
-        referenceSetsFilesRDD.keys map (SparkCmapHelperFunctions.filenameToRefsetName(_))
-
-      // handle case where ReferenceSet filename invalid
-      val invalidReferenceSetsRDD = referenceSetNamesRDD.filter(_.isFailure)
-      if (invalidReferenceSetsRDD.count() > 0) {
-          logger.error("A number of your Reference Profiles has invalid filenames...exiting")
-          System.exit(1)
-      }
-
-      val referenceSetValuesRDD =
-        referenceSetsFilesRDD.values map (SparkCmapHelperFunctions.fileToRefProfile(_))
-
-      val referenceSetsRDD = referenceSetNamesRDD.zip(referenceSetValuesRDD)
+      val referenceSetsRDD = referenceSetsFilesRDD
+        .map{case (filename, fileContents) => {
+        (SparkCmapHelperFunctions.filenameToRefsetName(filename), SparkCmapHelperFunctions.fileToRefProfile(fileContents)) }}
+        .partitionBy(new HashPartitioner(100))
         .reduceByKey(SparkCmapHelperFunctions.calculateAverageFoldChange(_, _))
 
-      val geneIds = referenceSetsFilesRDD
-        .zipWithIndex().filter(_._2 == 1L) //take only one
-        .map (_._1) //remove index
-        .map { case (filname: String, contents: String) => SparkCmapHelperFunctions.fileToRefProfile(contents) }
-        .first()
-        .map { case (geneId: String, foldChange: Float) => geneId }
+      val geneIds = (referenceSetsFilesRDD.first() match {
+        case (filename, contents) => SparkCmapHelperFunctions.fileToRefProfile(contents)
+      }).keys
 
       val querySignature : QuerySignatureMap = serviceQuerySignature.get.geneUpDown
       val sigLength : Int = querySignature.size
