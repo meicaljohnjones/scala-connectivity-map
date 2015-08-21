@@ -7,6 +7,7 @@ package object connectivitymap {
     "reffileLocation" -> "file:///home/mike/connectivity_map_resources/FDA_tsv_subset",
     "querySignatureLocation" -> "file:///home/mike/connectivity_map_resources/queries",
     "querySignature" -> "Estrogen",
-    "randomSignatureCount" -> "30000"
+    "randomSignatureCount" -> "30000",
+    "outputPath" -> "file:///home/mike/connectivity_map_resources/results"
   )
 }

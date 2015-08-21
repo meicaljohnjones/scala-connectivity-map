@@ -34,6 +34,21 @@ class ConnectivityMapServiceRunner {
     val timeTakenEstrogen = (afterEstrogen - beforeEstrogen) / 1000f
     println(f"Time taken on Estrogen sig: $timeTakenEstrogen%.2f s")
 
+    //replace below with prostate cancer sigs
+    val experiment2 = Experiment(id = 2, querySignatureId = "Estrogen", randomSignaureCount)
+    val experimentWithId2 = experimentProvider.add(experiment2)
+
+    println("Running Estrogen experiment...")
+    val beforeEstrogen2 = System.currentTimeMillis()
+    experimentRunner.runExperiment(experimentWithId2)
+
+    val result2 : ExperimentResult = experimentResultProvider.find(experimentWithId2.id).get
+    result2.scores foreach (println)
+    val afterEstrogen2 = System.currentTimeMillis()
+
+    val timeTakenEstrogen2 = (afterEstrogen2 - beforeEstrogen2) / 1000f
+    println(f"Time taken on Estrogen (x2 time) sig: $timeTakenEstrogen2%.2f s")
+
     // clean up resources
     sc.stop()
   }
