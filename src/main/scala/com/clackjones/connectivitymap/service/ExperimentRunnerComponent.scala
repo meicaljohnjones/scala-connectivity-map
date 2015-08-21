@@ -246,19 +246,3 @@ case class WritableQuerySignature(var foldChange: List[(String, Float)]) extends
     this.foldChange = readFoldChange
   }
 }
-
-
-class ReferenceSetPartitioner(val partitionCount: Int) extends Partitioner {
-  val hashPartitioner = new HashPartitioner(partitionCount)
-
-  override def numPartitions: Int = partitionCount
-
-  override def getPartition(key: Any): Int = {
-    // partition by refset name
-    // extract refset name from path
-    val path : String = key.toString()
-    path.substring(path.lastIndexOf("/") + 1, path.lastIndexOf("_"))
-
-    hashPartitioner.getPartition(path)
-  }
-}
