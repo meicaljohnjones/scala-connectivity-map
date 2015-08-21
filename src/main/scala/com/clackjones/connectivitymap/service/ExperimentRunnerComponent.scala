@@ -122,12 +122,11 @@ trait SparkExperimentRunnerComponent extends ExperimentRunnerComponent {
 
       val referenceSetsFilesRDD = sc.wholeTextFiles(refPath + "/*.gz", 5)
 
-      /* this RDD is cached in memory such that on subsequent runs, it is faster */
-      referenceSetsRDDOption = Some((referenceSetsFilesRDD
+      referenceSetsRDDOption = Some(referenceSetsFilesRDD
         .map{case (filename, fileContents) => {
         (SparkCmapHelperFunctions.filenameToRefsetName(filename), SparkCmapHelperFunctions.fileToRefProfile(fileContents)) }}
         .partitionBy(new HashPartitioner(20))
-        .reduceByKey(SparkCmapHelperFunctions.calculateAverageFoldChange(_, _))).cache())
+        .reduceByKey(SparkCmapHelperFunctions.calculateAverageFoldChange(_, _)))
 
       geneIdsOption = Some((referenceSetsFilesRDD.first() match {
         case (filename, contents) => SparkCmapHelperFunctions.fileToRefProfile(contents)
@@ -220,16 +219,20 @@ trait SparkExperimentRunnerComponent extends ExperimentRunnerComponent {
         }) / randomQuerySigs.size
 
         (refSetName, connectionScore, pVal)
-    }}
+      }}
 
-      val collectedResults = results.collect()
 
-      val result = collectedResults map {
+      val resultObjects = results map {
         case (refsetName, connectionScore, pVal) => ConnectionScoreResult(refsetName.get,
-	     connectionScore, pVal, 0)
+          connectionScore, pVal, 0)
       }
 
-      val experimentResult = ExperimentResult(experiment.id, result)
+      val outputFilename = "cmap_"+experiment.querySignatureId+"_"+experiment.id+"_result.txt"
+      resultObjects.saveAsTextFile(config("outputPath") + "/" + outputFilename)
+
+      val collectedResults = resultObjects.collect()
+
+      val experimentResult = ExperimentResult(experiment.id, collectedResults)
       experimentResultProvider.add(experimentResult)
 
       Some(experimentResult)
