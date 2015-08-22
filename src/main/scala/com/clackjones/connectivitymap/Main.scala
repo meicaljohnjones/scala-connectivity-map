@@ -6,15 +6,17 @@ import com.clackjones.connectivitymap.referenceprofile.{ReferenceProfileFileLoad
 import com.clackjones.connectivitymap.service._
 import com.clackjones.connectivitymap.spark.SparkContextComponent
 
+import org.slf4j.LoggerFactory
 /**
  * Run an example connectivity map
  */
 class ConnectivityMapServiceRunner {
   this: QuerySignatureProviderComponent with ReferenceSetProviderComponent with ExperimentRunnerComponent
   with InMemoryExperimentProviderComponent with InMemoryExperimentResultProviderComponent with SparkContextComponent =>
+  val logger = LoggerFactory.getLogger(getClass())
 
   def run(): Unit = {
-    println("Starting up experimentRunner")
+    logger.info("Starting up experimentRunner")
     experimentRunner.start()
     val randomSignaureCount = config("randomSignatureCount").toInt
 
@@ -25,6 +27,7 @@ class ConnectivityMapServiceRunner {
     runExperiment(experimentRunner, 3, "prostate_ordered", randomSignaureCount)
 
     // clean up resources
+    logger.info("Experiment complete.")
     sc.stop()
   }
 
@@ -32,19 +35,15 @@ class ConnectivityMapServiceRunner {
 
     val experiment = Experiment(experimentId, querySignatureId, randomSignatureCount)
 
-    println(s"Running $querySignatureId experiment...")
+    logger.info(s"Running $querySignatureId experiment...")
     val beforeEstrogen = System.currentTimeMillis()
 
-    val result : ExperimentResult = experimentRunner.runExperiment(experiment) match {
-      case Some(expRes) => expRes
-      case None => throw new Exception("No Experiment result for $querySignatureId generated.")
-    }
+    experimentRunner.runExperiment(experiment)
 
-    result.scores foreach (println)
     val afterEstrogen = System.currentTimeMillis()
 
     val timeTakenEstrogen = (afterEstrogen - beforeEstrogen) / 1000f
-    println(f"Time taken on $querySignatureId sig: $timeTakenEstrogen%.2f s")
+    logger.info(f"Time taken on $querySignatureId sig: $timeTakenEstrogen%.2f s")
   }
 }
 
