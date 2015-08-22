@@ -18,7 +18,7 @@ object SparkCmapHelperFunctions {
                                maxConnectionStrength: Float)  = {
 
     val connectionStrength = querySignature.foldLeft(0f){
-      case (strength, (geneId, reg)) => strength + referenceSignatureFoldChange(geneId) * reg
+      case (strength, (geneId, reg)) => strength + referenceSignatureFoldChange.getOrElse(geneId, 0f) * reg
     }
 
     connectionStrength / maxConnectionStrength
