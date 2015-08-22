@@ -13,46 +13,42 @@ class ConnectivityMapServiceRunner {
   this: QuerySignatureProviderComponent with ReferenceSetProviderComponent with ExperimentRunnerComponent
   with InMemoryExperimentProviderComponent with InMemoryExperimentResultProviderComponent with SparkContextComponent =>
 
-  def runExample(): Unit = {
+  def run(): Unit = {
     println("Starting up experimentRunner")
     experimentRunner.start()
-
-    println("Creating experiment object")
     val randomSignaureCount = config("randomSignatureCount").toInt
 
-    val experiment = Experiment(id = 1, querySignatureId = "Estrogen", randomSignaureCount)
-    val experimentWithId = experimentProvider.add(experiment)
+    println("Creating experiment object")
 
-    println("Running Estrogen experiment...")
-    val beforeEstrogen = System.currentTimeMillis()
-    experimentRunner.runExperiment(experimentWithId)
-
-    val result : ExperimentResult = experimentResultProvider.find(experimentWithId.id).get
-    result.scores foreach (println)
-    val afterEstrogen = System.currentTimeMillis()
-
-    val timeTakenEstrogen = (afterEstrogen - beforeEstrogen) / 1000f
-    println(f"Time taken on Estrogen sig: $timeTakenEstrogen%.2f s")
-
-    //replace below with prostate cancer sigs
-    val experiment2 = Experiment(id = 2, querySignatureId = "Estrogen", randomSignaureCount)
-    val experimentWithId2 = experimentProvider.add(experiment2)
-
-    println("Running Estrogen experiment...")
-    val beforeEstrogen2 = System.currentTimeMillis()
-    experimentRunner.runExperiment(experimentWithId2)
-
-    val result2 : ExperimentResult = experimentResultProvider.find(experimentWithId2.id).get
-    result2.scores foreach (println)
-    val afterEstrogen2 = System.currentTimeMillis()
-
-    val timeTakenEstrogen2 = (afterEstrogen2 - beforeEstrogen2) / 1000f
-    println(f"Time taken on Estrogen (x2 time) sig: $timeTakenEstrogen2%.2f s")
+    runExperiment(experimentRunner, 1, "Estrogen", randomSignaureCount)
+    runExperiment(experimentRunner, 2, "prostate_unordered", randomSignaureCount)
+    runExperiment(experimentRunner, 3, "prostate_ordered", randomSignaureCount)
 
     // clean up resources
     sc.stop()
   }
+
+  def runExperiment(experimentRunner: ExperimentRunner, experimentId: Int, querySignatureId: String, randomSignatureCount: Int) = {
+
+    val experiment = Experiment(experimentId, querySignatureId, randomSignatureCount)
+
+    println(s"Running $querySignatureId experiment...")
+    val beforeEstrogen = System.currentTimeMillis()
+
+    val result : ExperimentResult = experimentRunner.runExperiment(experiment) match {
+      case Some(expRes) => expRes
+      case None => throw new Exception("No Experiment result for $querySignatureId generated.")
+    }
+
+    result.scores foreach (println)
+    val afterEstrogen = System.currentTimeMillis()
+
+    val timeTakenEstrogen = (afterEstrogen - beforeEstrogen) / 1000f
+    println(f"Time taken on $querySignatureId sig: $timeTakenEstrogen%.2f s")
+  }
 }
+
+
 
 object Main {
 
@@ -66,6 +62,6 @@ object Main {
       with ConnectivityMapModule with FileBasedReferenceSetProviderComponent
       with ReferenceSetCreatorByDrugDoseAndCellLineComponent
 
-    connectivityMapRunner.runExample()
+    connectivityMapRunner.run()
   }
 }
