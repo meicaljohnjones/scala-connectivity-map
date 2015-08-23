@@ -108,9 +108,9 @@ trait SparkExperimentRunnerComponent extends ExperimentRunnerComponent {
     with QuerySignatureProviderComponent with ExperimentResultProviderComponent =>
   val experimentRunner = new SparkExperimentRunner
 
-
   class SparkExperimentRunner extends ExperimentRunner {
     val logger = LoggerFactory.getLogger(getClass())
+    val minPartitions = 100
 
     val refPath: String = config("reffileLocation")
     var referenceSetsRDDOption : Option[RDD[(Try[String], Map[String, Float])]] = None
@@ -119,12 +119,12 @@ trait SparkExperimentRunnerComponent extends ExperimentRunnerComponent {
     override def start(): Unit = {
       logger.info("Creating RDDs")
 
-      val referenceSetsFilesRDD = sc.wholeTextFiles(refPath + "/*.gz", 5)
+      val referenceSetsFilesRDD = sc.wholeTextFiles(refPath + "/*.gz", minPartitions)
 
       referenceSetsRDDOption = Some(referenceSetsFilesRDD
         .map{case (filename, fileContents) => {
         (SparkCmapHelperFunctions.filenameToRefsetName(filename), SparkCmapHelperFunctions.fileToRefProfile(fileContents)) }}
-        .partitionBy(new HashPartitioner(20))
+        .partitionBy(new HashPartitioner(minPartitions))
         .reduceByKey(SparkCmapHelperFunctions.calculateAverageFoldChange(_, _)))
 
       geneIdsOption = Some((referenceSetsFilesRDD.first() match {
@@ -172,7 +172,7 @@ trait SparkExperimentRunnerComponent extends ExperimentRunnerComponent {
 
 
       val randomQuerySignaturesRDD : RDD[(Int, WritableQuerySignature)] = {
-        sc.parallelize(List.range(0, experiment.randomSignatureCount, 1)) mapPartitionsWithIndex { case (partition, indices) => {
+        sc.parallelize(List.range(0, experiment.randomSignatureCount, 1), minPartitions) mapPartitionsWithIndex { case (partition, indices) => {
           val r = new Random()
           val _geneIds = geneIdsBroadcast.value
 
