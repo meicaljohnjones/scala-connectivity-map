@@ -105,7 +105,6 @@ trait DefaultExperimentRunnerComponent extends ExperimentRunnerComponent {
  */
 trait SparkExperimentRunnerComponent extends ExperimentRunnerComponent {
   this: SparkContextComponent with RandomSignatureGeneratorComponent with ConnectivityMapModule
-    with ReferenceSetLoaderComponent with ReferenceSetProviderComponent
     with QuerySignatureProviderComponent with ExperimentResultProviderComponent =>
   val experimentRunner = new SparkExperimentRunner
 
@@ -230,12 +229,7 @@ trait SparkExperimentRunnerComponent extends ExperimentRunnerComponent {
       val outputFilename = "cmap_"+experiment.querySignatureId+"_"+experiment.id+"_result.txt"
       resultObjects.saveAsTextFile(config("outputPath") + "/" + outputFilename)
 
-      val collectedResults = resultObjects.collect()
-
-      val experimentResult = ExperimentResult(experiment.id, collectedResults)
-      experimentResultProvider.add(experimentResult)
-
-      Some(experimentResult)
+      None
     }
   }
 }

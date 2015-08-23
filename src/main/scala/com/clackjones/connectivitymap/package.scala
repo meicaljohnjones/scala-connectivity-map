@@ -4,10 +4,10 @@ package object connectivitymap {
   type QuerySignatureMap = Map[String, Float]
 
   val config = Map(
-    "reffileLocation" -> "file:///home/mike/connectivity_map_resources/FDA_tsv_subset",
-    "querySignatureLocation" -> "file:///home/mike/connectivity_map_resources/queries",
+    "reffileLocation" -> "s3n://connectivity-map-spark/FDA_reffiles",
+    "querySignatureLocation" -> "s3n://connectivity-map-spark/queries",
     "querySignature" -> "Estrogen",
     "randomSignatureCount" -> "30000",
-    "outputPath" -> "file:///home/mike/connectivity_map_resources/results"
+    "outputPath" -> "s3://connectivity-map-spark/results"
   )
 }
