@@ -8,6 +8,6 @@ package object connectivitymap {
     "querySignatureLocation" -> "s3n://connectivity-map-spark/queries",
     "querySignature" -> "Estrogen",
     "randomSignatureCount" -> "30000",
-    "outputPath" -> "s3://connectivity-map-spark/results"
+    "outputPath" -> "s3n://connectivity-map-spark/results"
   )
 }
