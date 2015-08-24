@@ -4,7 +4,7 @@ import com.clackjones.connectivitymap._
 import com.clackjones.connectivitymap.querysignature.RandomSignatureGeneratorComponent
 import com.clackjones.connectivitymap.cmap.ConnectivityMapModule
 import com.clackjones.connectivitymap.referenceprofile.ReferenceSetLoaderComponent
-import com.clackjones.connectivitymap.spark.{WritableQuerySignature, SparkContextComponent, SparkCmapHelperFunctions}
+import com.clackjones.connectivitymap.spark.{SparkContextComponent, SparkCmapHelperFunctions}
 import org.apache.spark.HashPartitioner
 import org.apache.spark.broadcast.Broadcast
 
@@ -111,10 +111,12 @@ trait SparkExperimentRunnerComponent extends ExperimentRunnerComponent {
   class SparkExperimentRunner extends ExperimentRunner {
     val logger = LoggerFactory.getLogger(getClass())
     val minPartitions = 100
+    val randomSigCount = 30000
 
     val refPath: String = config("reffileLocation")
     var referenceSetsRDDOption : Option[RDD[(Try[String], Map[String, Float])]] = None
-    var geneIdsOption : Option[Iterable[String]] = None
+    var randomQuerySignatures : Option[Broadcast[Array[(Int, Iterable[(String, Float)])]]] = None
+    var geneIdsBroadcastOption  : Option[Broadcast[List[String]]] = None
 
     override def start(): Unit = {
       logger.info("Creating RDDs")
@@ -127,23 +129,49 @@ trait SparkExperimentRunnerComponent extends ExperimentRunnerComponent {
         .partitionBy(new HashPartitioner(minPartitions))
         .reduceByKey(SparkCmapHelperFunctions.calculateAverageFoldChange(_, _)))
 
-      geneIdsOption = Some((referenceSetsFilesRDD.first() match {
+      val geneIds = (referenceSetsFilesRDD.first() match {
         case (filename, contents) => SparkCmapHelperFunctions.fileToRefProfile(contents)
-      }).keys)
+      }).keys
+
+      val geneIdsBroacast = sc.broadcast(geneIds.toList)
+      geneIdsBroadcastOption  = Some(geneIdsBroacast)
+      val maxSigLength = 200
+
+      val randomQuerySignaturesRDD : RDD[(Int, Iterable[(String, Float)])] = {
+        sc.parallelize(List.range(0, randomSigCount, 1), minPartitions) mapPartitionsWithIndex { case (partition, indices) => {
+          val r = new Random()
+          val _geneIds = geneIdsBroacast.value
+
+          val randomQuerySigs = indices map (i => {
+            val randomGeneIds = r.shuffle(_geneIds)
+
+            val randomSigGeneIds = randomGeneIds.zipWithIndex.filter{case (geneId, idx) => idx < maxSigLength }.map{ case (geneId, idx) => geneId}
+            val foldChange = Array.fill(maxSigLength)(if (r.nextInt(2) == 0) -1f else 1f)
+
+            (i, randomSigGeneIds.zip(foldChange))
+          })
+
+          randomQuerySigs
+        }}
+      }
+
+      logger.info("Finished calculating random signatures...Broadcasting...")
+      randomQuerySignatures = Some(sc.broadcast(randomQuerySignaturesRDD.collect()))
+
+      logger.info("Finished broadcasting random signatures")
 
     }
 
     override def runExperiment(experiment: Experiment) : Option[ExperimentResult] = {
       logger.info("Ensuring RDDs all set up")
 
-      val geneIds : Iterable[String] = geneIdsOption match {
+      val geneIdsBroadcast : Broadcast[List[String]] = geneIdsBroadcastOption match {
         case Some(gIds) => gIds
         case None => {
-          logger.error("geneIdsOption were not found. Make sure startup() is called before runExperiment in SparkExperimentRunner()")
-          throw new Exception("geneIdsOption were not found. Make sure startup() is called before runExperiment in SparkExperimentRunner()")
+          logger.error("geneIdsBroadcastOption were not found. Make sure startup() is called before runExperiment in SparkExperimentRunner()")
+          throw new Exception("geneIdsBroadcastOption were not found. Make sure startup() is called before runExperiment in SparkExperimentRunner()")
       }}
 
-      val geneIdsBroadcast : Broadcast[Iterable[String]] = sc.broadcast(geneIds.toList)
 
       val referenceSetsRDD = referenceSetsRDDOption match {
         case Some(rdd) => rdd
@@ -151,11 +179,14 @@ trait SparkExperimentRunnerComponent extends ExperimentRunnerComponent {
           throw new Exception("referenceSetsRDDOption were not found. Make sure startup() is called before runExperiment in SparkExperimentRunner()")
       }
 
+      val ranQuerySigsBroadcast = randomQuerySignatures match {
+        case Some(rSigB) => rSigB
+        case None => logger.error("randomQuerySignatures were not found. Make sure startup() is called before runExperiment in SparkExperimentRunner()")
+          throw new Exception("randomQuerySignatures were not found. Make sure startup() is called before runExperiment in SparkExperimentRunner()")
+      }
+
 
       logger.info("Starting to runExperiment...")
-
-
-
 
       logger.info("Loading query signatures...")
       val serviceQuerySignature : Option[QuerySignature] = querySignatureProvider.find(experiment.querySignatureId)
@@ -169,34 +200,10 @@ trait SparkExperimentRunnerComponent extends ExperimentRunnerComponent {
 
       logger.info("Calculating random signatures...")
 
-
-
-      val randomQuerySignaturesRDD : RDD[(Int, WritableQuerySignature)] = {
-        sc.parallelize(List.range(0, experiment.randomSignatureCount, 1), minPartitions) mapPartitionsWithIndex { case (partition, indices) => {
-          val r = new Random()
-          val _geneIds = geneIdsBroadcast.value
-
-          val randomQuerySigs = indices map (i => {
-            val randomGeneIds = r.shuffle(_geneIds)
-
-            val randomSigGeneIds = randomGeneIds.zipWithIndex.filter{case (geneId, idx) => idx < sigLength }.map{ case (geneId, idx) => geneId}
-            val foldChange = Array.fill(sigLength)(if (r.nextInt(2) == 0) -1f else 1f)
-
-            (i, WritableQuerySignature(randomSigGeneIds.zip(foldChange)))
-          })
-
-          randomQuerySigs
-        }}
-      }
-
-      val randomQuerySignatures = sc.broadcast(randomQuerySignaturesRDD.collect())
-
-      logger.info("Finished calculating random signatures...")
-
       val maxConnectionsStrength : Float = if (serviceQuerySignature.get.isOrderedSignature) {
-        connectivityMap.maximumConnectionStrengthOrdered(geneIds.size, querySignature.size)
+        connectivityMap.maximumConnectionStrengthOrdered(geneIdsBroadcast.value.size, querySignature.size)
       } else {
-        connectivityMap.maximumConnectionStrengthUnordered(geneIds.size, querySignature.size)
+        connectivityMap.maximumConnectionStrengthUnordered(geneIdsBroadcast.value.size, querySignature.size)
       }
 
       val querySigBroadcast = sc.broadcast(querySignature)
@@ -206,11 +213,11 @@ trait SparkExperimentRunnerComponent extends ExperimentRunnerComponent {
 
 
         val querySig = querySigBroadcast.value
-        val randomQuerySigs = randomQuerySignatures.value
+        val randomQuerySigs = ranQuerySigsBroadcast.value
         val connectionScore = SparkCmapHelperFunctions.calculateConnectionScore(querySig, avgFoldChange, maxConnectionsStrength)
 
         val randomScores = randomQuerySigs map{ case (i, querySignature) => {
-          SparkCmapHelperFunctions.calculateConnectionScore(querySignature.foldChange.toMap, avgFoldChange, maxConnectionsStrength)
+          SparkCmapHelperFunctions.calculateConnectionScore(querySignature.take(sigLength).toMap, avgFoldChange, maxConnectionsStrength)
         }}
 
         val pVal = randomScores.foldLeft(0f)((count, randScore) => {
