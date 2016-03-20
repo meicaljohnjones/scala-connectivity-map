@@ -26,5 +26,8 @@ class ScalatraBootstrap extends LifeCycle
     context mount (querySignatureController, "/querysignature/*")
     context mount (experimentController, "/experiment/*")
     context mount (experimentResultController, "/result/*")
+
+    /* now generate the random gene signatures */
+    experimentRunner.start()
   }
 }
