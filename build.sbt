@@ -24,7 +24,7 @@ lazy val root = (project in file(".")).
     /* logging */
     libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.1.1" % "runtime",
 
-    libraryDependencies += "org.apache.spark" %% "spark-core" % "1.4.0" % "provided"
+    libraryDependencies += "org.apache.spark" %% "spark-core" % "1.6.1" % "provided"
   )
 
 assemblyMergeStrategy in assembly := {

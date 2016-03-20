@@ -11,7 +11,7 @@ package object connectivitymap {
 //    "outputPath" -> "s3n://connectivity-map-spark/results"
 //  )
   val config = Map(
-    "reffileLocation" -> "/home/mike/connectivity_map_resources/reffiles",
+    "reffileLocation" -> "/home/mike/connectivity_map_resources/FDA_tsv_subset",
     "querySignatureLocation" -> "/home/mike/connectivity_map_resources/queries",
     "querySignature" -> "Estrogen",
     "randomSignatureCount" -> "30000",
