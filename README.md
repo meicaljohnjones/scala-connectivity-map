@@ -2,12 +2,12 @@ h1. Gene Expression Connectivity Map for Apache Spark
 
 This is an implementation of Gene Expression Connectivity Map based on _sscMap_
 which was devised and written by Dr Shu-Dong Zhang and Dr Timothy Gant
-(see [http://bmcbioinformatics.biomedcentral.com/articles/10.1186/1471-2105-10-236|here] for
+(see [here](http://bmcbioinformatics.biomedcentral.com/articles/10.1186/1471-2105-10-236) for
 more information).
 
 This following is an attempt to reimplement the software above using the Apache Spark
 framework to exploit a much larger set of reference profiles from the
-[lincs.hms.harvard.edu|LINCS database].
+[LINCS database](lincs.hms.harvard.edu).
 
 The software is exposed as a RESTful interface and also provides a simple (as yet incomplete) HTML
 interface that uses the REST interface to interact with the software using AJAX calls.
