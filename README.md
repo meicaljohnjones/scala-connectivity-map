@@ -1,4 +1,4 @@
-h1. Gene Expression Connectivity Map for Apache Spark
+# Gene Expression Connectivity Map for Apache Spark
 
 This is an implementation of Gene Expression Connectivity Map based on _sscMap_
 which was devised and written by Dr Shu-Dong Zhang and Dr Timothy Gant
@@ -14,8 +14,8 @@ interface that uses the REST interface to interact with the software using AJAX 
 
 To access the web interface to Gene Expression Connectivity Map, visit <http://localhost:6789>
 
-h3. Installation
-To run the software locally:
+### Installation
+####To run the software locally:
 
 * clone this repository
 * Edit the properties in `/src/main/scala/com/clackjones/package.scala` to point to
@@ -25,7 +25,7 @@ To run the software locally:
 sbt -mem 8192 run
 ```
 
-h4. Standalone cluster
+#### Standalone cluster
 _These instructions require updating_
 
 How to run on a Spark standalone cluster:
