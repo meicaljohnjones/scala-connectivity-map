@@ -121,7 +121,7 @@ trait SparkExperimentRunnerComponent extends ExperimentRunnerComponent {
     override def start(): Unit = {
       logger.info("Creating RDDs")
 
-      val referenceSetsFilesRDD = sc.wholeTextFiles(refPath + "/*.gz", minPartitions)
+      val referenceSetsFilesRDD = sc.wholeTextFiles(refPath, minPartitions)
 
       referenceSetsRDDOption = Some(referenceSetsFilesRDD
         .map{case (filename, fileContents) => {
