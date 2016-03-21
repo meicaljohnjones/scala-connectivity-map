@@ -4,6 +4,9 @@ import com.clackjones.connectivitymap.service.{ExperimentRunnerComponent, Experi
 import org.scalatra.scalate.ScalateSupport
 import org.scalatra.{NotFound, Ok, ScalatraServlet}
 
+import scala.concurrent.Future
+import scala.concurrent.ExecutionContext.Implicits.global
+
 // JSON-related libraries
 import org.json4s.{MappingException, DefaultFormats, Formats}
 
@@ -43,9 +46,11 @@ trait ExperimentControllerComponent {
       try {
         val experiment = parsedBody.extract[Experiment]
         val experimentWithId = experimentProvider.add(experiment)
-        experimentRunner.runExperiment(experimentWithId)
-
+        Future {
+          experimentRunner.runExperiment(experimentWithId)
+        }
         Ok(experimentWithId)
+
       } catch {
         case jsonMapping: MappingException => "Couldn't parse json object!"
       }
