@@ -1,11 +1,8 @@
 package com.clackjones.connectivitymap.rest
 
-import com.clackjones.connectivitymap.service.{ExperimentRunnerComponent, Experiment, ExperimentProviderComponent}
+import com.clackjones.connectivitymap.service.{ExperimentQueueComponent, Experiment}
 import org.scalatra.scalate.ScalateSupport
-import org.scalatra.{NotFound, Ok, ScalatraServlet}
-
-import scala.concurrent.Future
-import scala.concurrent.ExecutionContext.Implicits.global
+import org.scalatra.{Accepted, ScalatraServlet}
 
 // JSON-related libraries
 import org.json4s.{MappingException, DefaultFormats, Formats}
@@ -14,47 +11,22 @@ import org.json4s.{MappingException, DefaultFormats, Formats}
 import org.scalatra.json._
 
 trait ExperimentControllerComponent {
-  this: ExperimentProviderComponent with ExperimentRunnerComponent =>
+  this: ExperimentQueueComponent =>
   val experimentController = new ExperimentController
 
   class ExperimentController extends ScalatraServlet with ScalateSupport with JacksonJsonSupport {
     protected implicit lazy val jsonFormats: Formats = DefaultFormats
-
-    get("/") {
-      contentType = formats("json")
-
-      Ok(experimentProvider.findAll())
-    }
-
-    /**
-     * retrieve a specific query signature by name
-     */
-    get("/id/:id") {
-      contentType = formats("json")
-      val id = params("id").toInt
-
-      experimentProvider.find(id) match {
-        case Some(sig) => Ok(sig)
-        case None => NotFound(s"Could not find experiment with the name $id")
-      }
-    }
 
     /**
      * Add new experiment
      */
     post("/") {
       try {
-        val experiment = parsedBody.extract[Experiment]
-        val experimentWithId = experimentProvider.add(experiment)
-        Future {
-          experimentRunner.runExperiment(experimentWithId)
-        }
-        Ok(experimentWithId)
-
+        val experimentId = experimentQueue.put(parsedBody.extract[Experiment])
+        Accepted(headers = Map("Location" -> f"/does/not/exist/$experimentId"))
       } catch {
         case jsonMapping: MappingException => "Couldn't parse json object!"
       }
-
     }
   }
 }

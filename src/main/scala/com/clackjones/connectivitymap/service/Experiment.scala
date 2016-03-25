@@ -1,13 +1,13 @@
 package com.clackjones.connectivitymap.service
 
 case class Experiment (
-  var id : Int,
+  var id : String,
   querySignatureId : String,
   randomSignatureCount : Int
 )
 
 case class ExperimentResult(
-  experimentId : Int,
+  experimentId : String,
   scores: Iterable[ConnectionScoreResult]
 )
 

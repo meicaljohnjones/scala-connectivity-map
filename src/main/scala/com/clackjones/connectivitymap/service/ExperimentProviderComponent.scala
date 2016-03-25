@@ -39,8 +39,8 @@ trait InMemoryExperimentProviderComponent extends ExperimentProviderComponent {
       experiment
     }
 
-    private def createNextExperimentId() : Int = {
-      experimentSet.size
+    private def createNextExperimentId() : String = {
+      experimentSet.size.toString
     }
   }
 }

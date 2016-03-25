@@ -19,16 +19,16 @@ class ConnectivityMapServiceRunner {
 
     println("Creating experiment object")
 
-    runExperiment(experimentRunner, 1, "Estrogen", randomSignaureCount)
-    runExperiment(experimentRunner, 2, "prostate_unordered", randomSignaureCount)
-    runExperiment(experimentRunner, 3, "prostate_ordered", randomSignaureCount)
+    runExperiment(experimentRunner, "1", "Estrogen", randomSignaureCount)
+    runExperiment(experimentRunner, "2", "prostate_unordered", randomSignaureCount)
+    runExperiment(experimentRunner, "3", "prostate_ordered", randomSignaureCount)
 
     // clean up resources
     println("Experiments complete.")
     sc.stop()
   }
 
-  def runExperiment(experimentRunner: ExperimentRunner, experimentId: Int, querySignatureId: String, randomSignatureCount: Int) = {
+  def runExperiment(experimentRunner: ExperimentRunner, experimentId: String, querySignatureId: String, randomSignatureCount: Int) = {
 
     val experiment = Experiment(experimentId, querySignatureId, randomSignatureCount)
 
