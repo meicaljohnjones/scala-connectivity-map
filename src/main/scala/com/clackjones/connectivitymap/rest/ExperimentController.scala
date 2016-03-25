@@ -1,5 +1,7 @@
 package com.clackjones.connectivitymap.rest
 
+import java.util.UUID
+
 import com.clackjones.connectivitymap.service.{ExperimentQueueComponent, Experiment}
 import org.scalatra.scalate.ScalateSupport
 import org.scalatra.{Accepted, ScalatraServlet}
@@ -22,8 +24,10 @@ trait ExperimentControllerComponent {
      */
     post("/") {
       try {
-        val experimentId = experimentQueue.put(parsedBody.extract[Experiment])
-        Accepted(headers = Map("Location" -> f"/does/not/exist/$experimentId"))
+        val experiment = parsedBody.extract[Experiment]
+        experiment.id = UUID.randomUUID().toString
+        experimentQueue.put(experiment)
+        Accepted(headers = Map("Location" -> f"/result/${experiment.id}"))
       } catch {
         case jsonMapping: MappingException => "Couldn't parse json object!"
       }
