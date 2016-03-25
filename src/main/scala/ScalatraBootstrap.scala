@@ -12,7 +12,7 @@ class ScalatraBootstrap extends LifeCycle
       with InMemoryExperimentProviderComponent
       with PollingSparkExperimentRunnerComponent with DefaultRandomSignatureGeneratorComponent
       with ReferenceSetFileLoaderComponent with ReferenceProfileFileLoaderComponent
-      with SparkQuerySignatureProviderComponent with InMemoryExperimentResultProviderComponent
+      with SparkQuerySignatureProviderComponent with SparkExperimentResultProviderComponent
       with SparkContextComponent
       with ConnectivityMapModule with FileBasedReferenceSetProviderComponent
       with ReferenceSetCreatorByDrugDoseAndCellLineComponent

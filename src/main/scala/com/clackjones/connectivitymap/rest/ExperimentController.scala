@@ -27,7 +27,7 @@ trait ExperimentControllerComponent {
         val experiment = parsedBody.extract[Experiment]
         experiment.id = UUID.randomUUID().toString
         experimentQueue.put(experiment)
-        Accepted(headers = Map("Location" -> f"/result/${experiment.id}"))
+        Accepted(headers = Map("location" -> f"/result/id/${experiment.id}"))
       } catch {
         case jsonMapping: MappingException => "Couldn't parse json object!"
       }

@@ -33,26 +33,28 @@
                 type: 'POST',
                 contentType: "text/javascript",
                 data: JSON.stringify(experiment),
-                dataType: 'json',
-                success: function(result){ console.log(result) }
+                success: function(data, textStatus, xhr){
+
+                    var resultUrl = xhr.getResponseHeader('location')
+                    retrieveResults(resultUrl)
+                }
             });
 
             event.preventDefault();
         });
 
         /* poll server for results */
-        function retrieveResults() {
-            $.get("/result", function(data) {
-            if (data.length > 0) {
-                /* put results in a table */
-                populateResultsTable(data)
-            }
-
-                setTimeout(retrieveResults,5000);
-            });
+        function retrieveResults(resultUrl) {
+            setInterval(function() {
+                $.get(resultUrl, function(data) {
+                    if (data.length > 0) {
+                        /* put results in a table */
+                        populateResultsTable(data)
+                        <%--return;--%>
+                    }
+                });
+            }, 1000);
         };
-        retrieveResults();
-
 
         function previewQuerySignature() {
             var selectedQuerySigId = $( "#query-signature-dropdown option:selected").text();

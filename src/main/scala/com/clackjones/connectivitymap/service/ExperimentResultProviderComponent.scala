@@ -1,33 +1,38 @@
 package com.clackjones.connectivitymap.service
 
+import com.clackjones.connectivitymap._
+import com.clackjones.connectivitymap.spark.SparkContextComponent
+import org.apache.spark.SparkContext
+
 import scala.collection.mutable.Set
 
 trait ExperimentResultProviderComponent {
   def experimentResultProvider : ExperimentResultProvider
 
   trait ExperimentResultProvider {
-    def find(experimentId: Int) : Option[ExperimentResult]
+    def find(experimentId: String) : Option[ExperimentResult]
     def findAll() : Set[ExperimentResult]
     def add(result: ExperimentResult) : Unit
   }
 }
 
-trait InMemoryExperimentResultProviderComponent extends ExperimentResultProviderComponent {
-  val experimentResultProvider = new InMemoryExperimentResultProvider
+trait SparkExperimentResultProviderComponent extends ExperimentResultProviderComponent {
+  this: SparkContextComponent =>
+  val experimentResultProvider = new SparkExperimentResultProvider
 
-  class InMemoryExperimentResultProvider extends ExperimentResultProvider {
-    private val experimentResultSet : Set[ExperimentResult] = Set()
-
-    override def find(experimentId: Int) : Option[ExperimentResult] = {
-      experimentResultSet.find(_.experimentId == experimentId)
+  class SparkExperimentResultProvider extends ExperimentResultProvider {
+    def find(experimentId: String) : Option[ExperimentResult] = {
+      val experimentFilename = experimentId+".txt"
+      try {
+        val results = sc.objectFile[ConnectionScoreResult](config("outputPath") + "/" + experimentFilename).collect()
+        Some(ExperimentResult(experimentId, results))
+      } catch {
+        case e : java.lang.Exception => None
+      }
     }
 
-    override def findAll() : Set[ExperimentResult] = {
-      experimentResultSet
-    }
+    def findAll() : Set[ExperimentResult] = Set()
 
-    override def add(result: ExperimentResult) : Unit = {
-      experimentResultSet.add(result)
-    }
+    def add(result : ExperimentResult) = throw new UnsupportedOperationException("Can't add Experiment result")
   }
 }

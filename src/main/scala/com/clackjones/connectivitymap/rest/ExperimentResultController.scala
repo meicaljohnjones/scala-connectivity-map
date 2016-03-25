@@ -29,7 +29,7 @@ trait ExperimentResultControllerComponent {
      */
     get("/id/:id") {
       contentType = formats("json")
-      val id = params("id").toInt
+      val id = params("id")
       experimentResultProvider.find(id) match {
         case Some(result) => Ok(result)
         case None => NotFound(s"Could not find the experiment result with the id $id")

@@ -173,9 +173,8 @@ trait PollingSparkExperimentRunnerComponent extends ExperimentRunnerComponent {
           connectionScore, pVal, 0)
       }
 
-      val outputFilename = "cmap_"+experiment.querySignatureId+"_"+experiment.id+"_result.txt"
-      resultObjects.saveAsTextFile(config("outputPath") + "/" + outputFilename)
-
+      val outputFilename = experiment.id+".txt"
+      resultObjects.saveAsObjectFile(config("outputPath") + "/" + outputFilename)
       None
     }
   }
