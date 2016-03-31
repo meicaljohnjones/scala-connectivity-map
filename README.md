@@ -35,3 +35,6 @@ How to run on a Spark standalone cluster:
 * `sbt assembly`
 * `cd target/scala-2.10/`
 * `$SPARK_HOME/bin/spark-submit spark://master-url:7077 scala-connectivity-map.jar`
+
+### TODO
+* Implement perturbation score (doi:10.1371/journal.pone.0016382)
