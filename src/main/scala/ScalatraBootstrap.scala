@@ -19,6 +19,7 @@ class ScalatraBootstrap extends LifeCycle
       with QuerySignatureControllerComponent with ExperimentControllerComponent
       with ExperimentQueueComponent
       with ExperimentResultControllerComponent
+      with ProgressControllerComponent
       with MainControllerComponent {
 
   override def init(context: ServletContext) {
@@ -27,6 +28,8 @@ class ScalatraBootstrap extends LifeCycle
     context mount (querySignatureController, "/querysignature/*")
     context mount (experimentController, "/experiment/*")
     context mount (experimentResultController, "/result/*")
+    context mount (experimentResultController, "/result/*")
+    context mount (progressController, "/progress/*")
 
     /* now generate the random gene signatures */
     experimentRunner.start()
