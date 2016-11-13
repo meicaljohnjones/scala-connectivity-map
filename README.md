@@ -37,4 +37,14 @@ How to run on a Spark standalone cluster:
 * `$SPARK_HOME/bin/spark-submit spark://master-url:7077 scala-connectivity-map.jar`
 
 ### TODO
+* Update to Spark 2.0.1
+* Submit jobs using <https://spark.apache.org/docs/2.0.1/api/java/org/apache/spark/launcher/SparkLauncher.html>
+* i.e. stop hosting rest interface on spark itself and create separate web application that submits .jar as job with `setFile()` to attach query gene signature
+* Watch status using callback on SparkLauncher
+* Use spark-redis to write result to database possibly ???
+* Use Vagrant for:
+  * VM for web application
+  * VM for spark node
+  * VM for build server (???)
+* Look into using Scala Tags to craft HTML with Scala.js for JavaScript stuff
 * Implement perturbation score (doi:10.1371/journal.pone.0016382)
