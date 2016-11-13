@@ -1,7 +1,7 @@
 lazy val commonSettings = Seq(
     organization := "com.clackjones",
     version := "0.1.0",
-    scalaVersion := "2.11.6"
+    scalaVersion := "2.11.8"
 )
 
 ivyScala := ivyScala.value map { _.copy(overrideScalaVersion = true) }
@@ -24,7 +24,7 @@ lazy val root = (project in file(".")).
     /* logging */
     libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.1.1" % "runtime",
 
-    libraryDependencies += "org.apache.spark" %% "spark-core" % "1.6.1" % "provided"
+    libraryDependencies += "org.apache.spark" %% "spark-core" % "2.0.1" % "provided"
   )
 
 assemblyMergeStrategy in assembly := {
